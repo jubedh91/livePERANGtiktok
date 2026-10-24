@@ -90,7 +90,6 @@
       <div class="header-actions">
         <button id="btn-sound-toggle" class="btn-icon" title="Toggle Sound / TTS">🔊</button>
         <button id="btn-lb-toggle" class="btn-icon" title="Toggle Leaderboard">🏆</button>
-        <!-- Tombol Layar Penuh Manual (Jaga-jaga) -->
         <button id="btn-fs-toggle" class="btn-icon" title="Mode Layar Penuh">🔲</button>
       </div>
     </header>
@@ -112,7 +111,7 @@
     </div>
     <div id="event-ticker">
       <span class="ticker-icon">⚡</span>
-      <span class="ticker-text" id="ticker-msg">Persiapan sistem... Menunggu koneksi otomatis.</span>
+      <span class="ticker-text" id="ticker-msg">Persiapan sistem... Menunggu koneksi.</span>
     </div>
     <footer id="simulator-dock"></footer>
   </div>
@@ -124,26 +123,14 @@
       let audioEnabled = true; let audioCtx = null; let ttsUnlocked = false;
 
       function getAudioContext() {
-        if (!audioCtx) {
-          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-          if (AudioContextClass) audioCtx = new AudioContextClass();
-        }
-        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-        return audioCtx;
+        if (!audioCtx) { const AudioContextClass = window.AudioContext || window.webkitAudioContext; if (AudioContextClass) audioCtx = new AudioContextClass(); }
+        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume(); return audioCtx;
       }
 
       const TTS = {
         speak(text) {
           if (!audioEnabled || !('speechSynthesis' in window)) return;
-          try {
-            window.speechSynthesis.cancel();
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'id-ID'; utterance.rate = 1.08; utterance.pitch = 1.05;
-            const voices = window.speechSynthesis.getVoices();
-            const indonesianVoice = voices.find(v => v.lang.includes('id') || v.lang.includes('ID'));
-            if (indonesianVoice) utterance.voice = indonesianVoice;
-            window.speechSynthesis.speak(utterance);
-          } catch (e) {}
+          try { window.speechSynthesis.cancel(); const utterance = new SpeechSynthesisUtterance(text); utterance.lang = 'id-ID'; utterance.rate = 1.08; utterance.pitch = 1.05; const voices = window.speechSynthesis.getVoices(); const indonesianVoice = voices.find(v => v.lang.includes('id') || v.lang.includes('ID')); if (indonesianVoice) utterance.voice = indonesianVoice; window.speechSynthesis.speak(utterance); } catch (e) {}
         }
       };
 
@@ -162,11 +149,7 @@
 
       const ImageCache = {
         cache: new Map(),
-        get(url) {
-          if (!url) return null;
-          if (this.cache.has(url)) { const img = this.cache.get(url); return (img.complete && img.naturalWidth > 0) ? img : null; }
-          const img = new Image(); img.crossOrigin = 'anonymous'; img.src = url; this.cache.set(url, img); return null;
-        }
+        get(url) { if (!url) return null; if (this.cache.has(url)) { const img = this.cache.get(url); return (img.complete && img.naturalWidth > 0) ? img : null; } const img = new Image(); img.crossOrigin = 'anonymous'; img.src = url; this.cache.set(url, img); return null; }
       };
 
       class Tile {
@@ -183,15 +166,10 @@
             for (let c = 0; c <= COLS - k; c++) {
               const base = grid[r * COLS + c]; if (!base.isOwned || covered[r][c]) continue;
               const uid = base.uniqueId; const lk = !!base.isLocked; const tp = !!base.isFromTap; let isValid = true;
-              for (let dr = 0; dr < k; dr++) {
-                for (let dc = 0; dc < k; dc++) { const t = grid[(r + dr) * COLS + (c + dc)]; if (!t.isOwned || t.uniqueId !== uid || !!t.isLocked !== lk || !!t.isFromTap !== tp || covered[r+dr][c+dc]) { isValid = false; break; } }
-                if (!isValid) break;
-              }
+              for (let dr = 0; dr < k; dr++) { for (let dc = 0; dc < k; dc++) { const t = grid[(r + dr) * COLS + (c + dc)]; if (!t.isOwned || t.uniqueId !== uid || !!t.isLocked !== lk || !!t.isFromTap !== tp || covered[r+dr][c+dc]) { isValid = false; break; } } if (!isValid) break; }
               if (isValid) {
                 let maxLock = 0; let anySultan = false;
-                for (let dr = 0; dr < k; dr++) {
-                  for (let dc = 0; dc < k; dc++) { covered[r+dr][c+dc] = true; const t = grid[(r+dr)*COLS + (c+dc)]; if (t.isLocked && t.lockEndTime > maxLock) maxLock = t.lockEndTime; if (t.isSultan) anySultan = true; }
-                }
+                for (let dr = 0; dr < k; dr++) { for (let dc = 0; dc < k; dc++) { covered[r+dr][c+dc] = true; const t = grid[(r+dr)*COLS + (c+dc)]; if (t.isLocked && t.lockEndTime > maxLock) maxLock = t.lockEndTime; if (t.isSultan) anySultan = true; } }
                 merged.push({ col: c, row: r, size: k, uniqueId: uid, ownerName: base.ownerName, ownerAvatar: base.ownerAvatar, ownerColor: base.ownerColor, isLocked: lk, lockEndTime: maxLock, isSultan: anySultan, isFromTap: tp });
               }
             }
@@ -217,13 +195,8 @@
           document.getElementById('btn-sound-toggle').addEventListener('click', (e) => { audioEnabled = !audioEnabled; e.target.textContent = audioEnabled ? '🔊' : '🔇'; if (!audioEnabled && 'speechSynthesis' in window) window.speechSynthesis.cancel(); });
           document.getElementById('btn-lb-toggle').addEventListener('click', () => { const lb = document.getElementById('leaderboard-overlay'); lb.style.display = lb.style.display === 'none' ? 'block' : 'none'; });
 
-          // TOMBOL LAYAR PENUH MANUAL
           document.getElementById('btn-fs-toggle').addEventListener('click', () => {
-            if (!document.fullscreenElement) {
-              document.documentElement.requestFullscreen().catch(err => console.log("Gagal masuk layar penuh."));
-            } else {
-              document.exitFullscreen();
-            }
+            if (!document.fullscreenElement) { document.documentElement.requestFullscreen().catch(err => console.log("Layar penuh ditolak browser.")); } else { document.exitFullscreen(); }
           });
         }
 
@@ -236,7 +209,7 @@
             if (!target) { const unlocked = this.grid.filter(t => !t.isLocked && t.uniqueId !== uid); if (unlocked.length > 0) target = unlocked[Math.floor(Math.random() * unlocked.length)]; }
             if (target) { target.claim(uid, name, av, col, false, true); this.spawnFloatingText(target.col, target.row, '+1 TAP (ABU)', '#94a3b8'); this.spawnSparks(target.col, target.row, '#64748b', 8); claimedCount++; }
           }
-          if (claimedCount > 0) { this.setTicker(`👆 <b>${name}</b> tap mencapai kelipatan 50! +${claimedCount} petak abu-abu!`); this.onGridModified(); }
+          if (claimedCount > 0) { this.setTicker(`👆 <b>${name}</b> tap mencapai kelipatan 50! +${claimedCount} petak!`); this.onGridModified(); }
         }
 
         triggerRose(uid, name, av, col) {
@@ -247,19 +220,19 @@
             const neighbors = []; offsets.forEach(([dc,dr]) => { const nc=t1.col+dc, nr=t1.row+dr; if(nc>=0&&nc<COLS&&nr>=0&&nr<ROWS) { const cand=this.grid[nr*COLS+nc]; if(cand.index!==t1.index && !cand.isLocked && cand.uniqueId!==uid) neighbors.push(cand); } });
             if (neighbors.length>0) { t2 = neighbors[Math.floor(Math.random()*neighbors.length)]; } else { const other = this.grid.filter(t => !t.isLocked && t.uniqueId!==uid && t.index!==t1.index); if (other.length>0) t2 = other[Math.floor(Math.random()*other.length)]; }
             [t1, t2].filter(Boolean).forEach((target, i) => { const startX = Math.random() < 0.5 ? -40 : this.canvas.width + 40; this.projectiles.push({ type:'arrow', x:startX, y:Math.random()*this.canvas.height, targetX:(target.col+0.5)*this.tileWidth, targetY:(target.row+0.5)*this.tileHeight, speed:1300, color:'#f43f5e', targetTile:target, uniqueId:uid, ownerName:name, ownerAvatar:av, ownerColor:col, delay:i*0.12 }); });
-            const c = t2?2:1; this.setTicker(`🌹 <b>${name}</b> mengirim Mawar! Ekspansi ${c} petak!`); TTS.speak(`${name} mengirim Mawar! Ekspansi ${c} petak bersebelahan!`);
+            const c = t2?2:1; this.setTicker(`🌹 <b>${name}</b> mengirim Mawar! Ekspansi ${c} petak!`); TTS.speak(`${name} mengirim Mawar!`);
           } else { SoundFX.playLock(); }
         }
 
         triggerHeartBomb(uid, name, av, col) {
           SoundFX.playBomb(); const startCol = Math.floor(Math.random() * (COLS - 2)); const startRow = Math.floor(Math.random() * (ROWS - 2)); const endX = (startCol + 1.5) * this.tileWidth; const endY = (startRow + 1.5) * this.tileHeight;
           this.projectiles.push({ type:'bomb', x:endX, y:-50, targetX:endX, targetY:endY, speed:1400, color:'#ec4899', startCol, startRow, uniqueId:uid, ownerName:name, ownerAvatar:av, ownerColor:col });
-          this.setTicker(`🫰 <b>${name}</b> melempar BOM JARI HATI (3x3)!`); TTS.speak(`${name} menjatuhkan bom Jari Hati! Area sembilan petak meledak!`);
+          this.setTicker(`🫰 <b>${name}</b> melempar BOM JARI HATI (3x3)!`); TTS.speak(`${name} menjatuhkan bom Jari Hati!`);
         }
 
         executeBombExplosion(startCol, startRow, uid, name, av, col) {
           this.shakeScreen(0.35, 12); let taken = 0;
-          for(let r=startRow;r<startRow+3;r++) { for(let c=startCol;c<startCol+3;c++) { if(c>=0&&c<COLS&&r>=0&&r<ROWS) { const t = this.grid[r*COLS+c]; if(t.isLocked) { this.spawnFloatingText(t.col, t.row, '🛡️ KEBAL!', '#fbbf24'); this.spawnSparks(t.col, t.row, '#fde047', 8); } else { t.claim(uid, name, av, col); taken++; } } } }
+          for(let r=startRow;r<startRow+3;r++) { for(let c=startCol;c<startCol+3;c++) { if(c>=0&&c<COLS&&r>=0&&r<ROWS) { const t = this.grid[r*COLS+c]; if(t.isLocked) { this.spawnFloatingText(t.col, t.row, '🛡️ KEBAL!', '#fbbf24'); } else { t.claim(uid, name, av, col); taken++; } } } }
           this.spawnFloatingText(startCol+1, startRow+1, `💥 +${taken} PETAK!`, '#f43f5e', 18); this.onGridModified();
         }
 
@@ -267,8 +240,8 @@
           SoundFX.playLock(); let userTiles = this.grid.filter(t => t.isOwned && t.uniqueId === uid);
           if (userTiles.length === 0) { const avail = this.grid.filter(t => !t.isLocked); if(avail.length>0) { const fb = avail[Math.floor(Math.random()*avail.length)]; fb.claim(uid, name, AVATARS.custom, '#a855f7'); userTiles = [fb]; this.onGridModified(); } else return; }
           const squares = this.cachedMergedSquares.filter(sq => sq.uniqueId===uid && sq.size>=2);
-          if (squares.length > 0) { squares.sort((a,b)=>b.size-a.size); const sq = squares[0]; for(let dr=0;dr<sq.size;dr++) { for(let dc=0;dc<sq.size;dc++) { const t = this.grid[(sq.row+dr)*COLS+(sq.col+dc)]; if(t) t.lock(durSec); } } this.setTicker(`🛡️ <b>${name}</b> mengamankan formasi <b>${sq.size}x${sq.size}</b> miliknya!`); TTS.speak(`${name} mengamankan formasi ${sq.size} kali ${sq.size} miliknya dengan ${giftLabel}!`); }
-          else { const shuffled = [...userTiles].sort(()=>Math.random()-0.5).slice(0,16); shuffled.forEach(t => t.lock(durSec)); this.setTicker(`🛡️ <b>${name}</b> mengamankan ${shuffled.length} petak acaknya!`); TTS.speak(`${name} mengamankan petak acaknya dengan ${giftLabel}!`); }
+          if (squares.length > 0) { squares.sort((a,b)=>b.size-a.size); const sq = squares[0]; for(let dr=0;dr<sq.size;dr++) { for(let dc=0;dc<sq.size;dc++) { const t = this.grid[(sq.row+dr)*COLS+(sq.col+dc)]; if(t) t.lock(durSec); } } this.setTicker(`🛡️ <b>${name}</b> mengamankan formasi miliknya!`); TTS.speak(`${name} mengamankan formasinya!`); }
+          else { const shuffled = [...userTiles].sort(()=>Math.random()-0.5).slice(0,16); shuffled.forEach(t => t.lock(durSec)); this.setTicker(`🛡️ <b>${name}</b> mengamankan petak acaknya!`); TTS.speak(`${name} mengamankan wilayahnya!`); }
           this.onGridModified();
         }
 
@@ -278,7 +251,6 @@
           TTS.speak(`${name} meluncurkan senjata uang! Enam puluh empat petak wilayah dikuasai!`);
           const targetX = (startCol+4)*this.tileWidth; const targetY = (startRow+4)*this.tileHeight;
           this.projectiles.push({ type:'moneygun_barrage', x:targetX, y:-100, targetX, targetY, speed:1000, color:'#f59e0b', startCol, startRow, uniqueId:uid, ownerName:name, ownerAvatar:av, ownerColor:col });
-          this.setTicker(`💸 <b>${name}</b> MENEMBAKKAN SENJATA UANG! 64 Petak ditembus!`);
         }
 
         executeMoneyGunDestruction(startCol, startRow, uid, name, av, col) {
@@ -300,7 +272,7 @@
         }
 
         shakeScreen(dur, int) { this.cameraShake.duration=dur; this.cameraShake.intensity=int; }
-        spawnSparks(c, r, col, cnt=10) { /* Particles omitted for brevity */ }
+        spawnSparks(c, r, col, cnt=10) { }
         spawnFloatingText(c, r, txt, col) { this.floatingTexts.push({ x:(c+0.5)*this.tileWidth, y:(r+0.5)*this.tileHeight, text:txt, color:col, fontSize:13, alpha:1, vy:-40}); }
         setTicker(html) { document.getElementById('ticker-msg').innerHTML = html; }
 
@@ -346,30 +318,46 @@
           ctx.restore();
         }
 
+        /* --- KUNCI PENDOBRAK CORS (WEBSOCKET ONLY) --- */
         initWebSocket() {
           const targetId = 'milalala48'; 
-          this.setTicker(`🔄 Menghubungkan ke pusat data TikTok untuk @${targetId}...`);
+          this.setTicker(`🔄 Mendobrak keamanan browser untuk @${targetId}...`);
 
           try {
-            const socket = io("https://tiktok-chat-reader.zerody.one");
+            // PERUBAHAN KRUSIAL ADA DI SINI
+            const socket = io("https://tiktok-chat-reader.zerody.one", {
+              transports: ["websocket"], // Memaksa Socket.io mem-bypass aturan CORS HTTP
+              secure: true
+            });
+
             socket.on('connect', () => {
               socket.emit('setUniqueId', targetId, { enableExtendedGiftInfo: true });
             });
+
             socket.on('setUniqueIdSuccess', (state) => {
               this.setTicker(`🟢 TERSAMBUNG! Menunggu penonton di room @${targetId}...`);
             });
+
             socket.on('setUniqueIdFailed', (errorMessage) => {
               this.setTicker(`🔴 GAGAL: ${errorMessage} (Pastikan Anda sudah LIVE)`);
             });
+
+            // Deteksi jika server Zerody sedang down/sibuk
+            socket.on('connect_error', (err) => {
+              this.setTicker(`🔴 KONEKSI TERBLOKIR SERVER: ${err.message}`);
+            });
+
             socket.on('like', (data) => {
               const uid = data.uniqueId; const name = data.nickname; const avatar = data.profilePictureUrl; const color = '#38bdf8'; const tapCount = data.likeCount || 1;
               this.triggerTap(uid, name, avatar, color, tapCount);
             });
+
             socket.on('gift', (data) => {
               if (data.giftType === 1 && !data.repeatEnd) return; 
               const uid = data.uniqueId; const name = data.nickname; const avatar = data.profilePictureUrl; const color = '#f43f5e'; const gift = (data.giftName || '').toLowerCase();
               if (gift.includes('rose') || gift.includes('mawar')) { this.triggerRose(uid, name, avatar, color); } else if (gift.includes('heart') || gift.includes('jari')) { this.triggerHeartBomb(uid, name, avatar, color); } else if (gift.includes('love') || gift.includes('cinta')) { this.triggerLock(30, 'Aku Cinta Kamu 💖', uid, name); } else if (gift.includes('donut') || gift.includes('donat')) { this.triggerLock(120, 'Donat 🍩', uid, name); } else if (gift.includes('money') || gift.includes('uang') || gift.includes('gun') || gift.includes('senjata')) { this.triggerMoneyGun(uid, name, avatar, color); } else { this.triggerRose(uid, name, avatar, color); }
             });
+
             socket.on('roomUser', (data) => {
                const viewerEl = document.getElementById('txt-viewers');
                if (viewerEl && data.viewerCount) { viewerEl.textContent = data.viewerCount > 1000 ? (data.viewerCount / 1000).toFixed(1) + 'k' : data.viewerCount; }
@@ -389,15 +377,15 @@
           window.speechSynthesis.getVoices();
         }
         
-        // FITUR OTOMATIS LAYAR PENUH (FULLSCREEN)
+        // MENELAN CHROME (FULLSCREEN OTOMATIS)
         if (!document.fullscreenElement) {
           document.documentElement.requestFullscreen().catch(err => {
-            console.log("Auto-fullscreen diblokir browser, gunakan tombol 🔲 di atas.");
+            console.log("Auto-fullscreen diblokir, gunakan tombol 🔲");
           });
         }
 
         document.getElementById('start-overlay').classList.add('hidden');
-        setTimeout(() => TTS.speak('Sistem penyadap TikTok berhasil terhubung ke room. Selamat bertempur!'), 300);
+        setTimeout(() => TTS.speak('Sistem penyadap TikTok siap beroperasi!'), 300);
       }
 
       document.getElementById('start-overlay').addEventListener('click', unlockAudioAndTTS);
