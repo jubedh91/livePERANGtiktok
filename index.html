@@ -111,7 +111,7 @@
     </div>
     <div id="event-ticker">
       <span class="ticker-icon">⚡</span>
-      <span class="ticker-text" id="ticker-msg">Persiapan sistem... Menunggu koneksi.</span>
+      <span class="ticker-text" id="ticker-msg">Persiapan sistem... Menunggu sambungan.</span>
     </div>
     <footer id="simulator-dock"></footer>
   </div>
@@ -196,7 +196,7 @@
           document.getElementById('btn-lb-toggle').addEventListener('click', () => { const lb = document.getElementById('leaderboard-overlay'); lb.style.display = lb.style.display === 'none' ? 'block' : 'none'; });
 
           document.getElementById('btn-fs-toggle').addEventListener('click', () => {
-            if (!document.fullscreenElement) { document.documentElement.requestFullscreen().catch(err => console.log("Layar penuh ditolak browser.")); } else { document.exitFullscreen(); }
+            if (!document.fullscreenElement) { document.documentElement.requestFullscreen().catch(err => console.log("Layar penuh ditolak.")); } else { document.exitFullscreen(); }
           });
         }
 
@@ -318,16 +318,17 @@
           ctx.restore();
         }
 
-        /* --- KUNCI PENDOBRAK CORS (WEBSOCKET ONLY) --- */
+        /* --- JALUR RESMI (TANPA PENDOBRAK) + RADAR ERROR --- */
         initWebSocket() {
           const targetId = 'milalala48'; 
-          this.setTicker(`🔄 Mendobrak keamanan browser untuk @${targetId}...`);
+          this.setTicker(`🔄 Memulai koneksi resmi ke TikTok untuk @${targetId}...`);
 
           try {
-            // PERUBAHAN KRUSIAL ADA DI SINI
+            // KODE KEMBALI NORMAL, TANPA PAKSAAN TRANSPORT
             const socket = io("https://tiktok-chat-reader.zerody.one", {
-              transports: ["websocket"], // Memaksa Socket.io mem-bypass aturan CORS HTTP
-              secure: true
+              secure: true,
+              reconnection: true,
+              reconnectionAttempts: 5
             });
 
             socket.on('connect', () => {
@@ -339,12 +340,16 @@
             });
 
             socket.on('setUniqueIdFailed', (errorMessage) => {
-              this.setTicker(`🔴 GAGAL: ${errorMessage} (Pastikan Anda sudah LIVE)`);
+              this.setTicker(`🔴 GAGAL: Akun belum LIVE atau dibatasi umur (18+)`);
             });
 
-            // Deteksi jika server Zerody sedang down/sibuk
+            // SENSOR JIKA ADA BLOKIRAN BARU
             socket.on('connect_error', (err) => {
-              this.setTicker(`🔴 KONEKSI TERBLOKIR SERVER: ${err.message}`);
+              this.setTicker(`🔴 KONEKSI DITOLAK: ${err.message}. Coba refresh.`);
+            });
+            
+            socket.on('disconnect', (reason) => {
+              this.setTicker(`🔴 TERPUTUS DARI SATELIT: ${reason}`);
             });
 
             socket.on('like', (data) => {
@@ -363,7 +368,7 @@
                if (viewerEl && data.viewerCount) { viewerEl.textContent = data.viewerCount > 1000 ? (data.viewerCount / 1000).toFixed(1) + 'k' : data.viewerCount; }
             });
           } catch (err) {
-            this.setTicker('🔴 Gagal memuat skrip penyadap data.');
+            this.setTicker('🔴 Gagal memuat sistem koneksi.');
           }
         }
       }
@@ -377,10 +382,9 @@
           window.speechSynthesis.getVoices();
         }
         
-        // MENELAN CHROME (FULLSCREEN OTOMATIS)
         if (!document.fullscreenElement) {
           document.documentElement.requestFullscreen().catch(err => {
-            console.log("Auto-fullscreen diblokir, gunakan tombol 🔲");
+            console.log("Auto-fullscreen diblokir, ketuk ikon kotak 🔲 di atas.");
           });
         }
 
