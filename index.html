@@ -4,175 +4,91 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Perang Wilayah Kanvas - TikTok Live @milalala48</title>
-  <meta name="description" content="Game interaktif Perang Wilayah Kanvas (Endless Turf War) 9:16 untuk siaran langsung TikTok Live." />
-  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
   <style>
-    /* =========================================================
-       CSS TIKTOK LIVE TURF WAR - PRODUCTION READY
-       ========================================================= */
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
-    body { background-color: #05070d; color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; min-height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden; background-image: radial-gradient(circle at 50% 10%, rgba(99, 102, 241, 0.16), transparent 45%), radial-gradient(circle at 80% 85%, rgba(236, 72, 153, 0.14), transparent 45%), linear-gradient(180deg, #070913 0%, #030407 100%); }
-    #stream-container { position: relative; width: 100%; height: 100vh; max-height: 100vh; aspect-ratio: 9 / 16; max-width: calc(100vh * (9 / 16)); background: #090d16; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 0 60px rgba(0, 0, 0, 0.95), 0 0 35px rgba(79, 70, 229, 0.3); border-left: 1px solid rgba(255, 255, 255, 0.08); border-right: 1px solid rgba(255, 255, 255, 0.08); }
+    body { background-color: #05070d; color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; min-height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden; background-image: radial-gradient(circle at 50% 10%, rgba(99, 102, 241, 0.16), transparent 45%), radial-gradient(circle at 80% 85%, rgba(236, 72, 153, 0.14), transparent 45%), linear-gradient(180deg, #070913 0%, #030407 100%); }
+    #stream-container { position: relative; width: 100%; height: 100vh; max-height: 100vh; aspect-ratio: 9/16; max-width: calc(100vh * (9/16)); background: #090d16; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 0 60px rgba(0, 0, 0, 0.95); }
     #start-overlay { position: absolute; inset: 0; z-index: 200; background: rgba(4, 7, 15, 0.92); backdrop-filter: blur(14px); display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 24px; text-align: center; cursor: pointer; transition: opacity 0.3s ease, visibility 0.3s ease; }
     #start-overlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
-    .start-pulse-icon { font-size: 50px; margin-bottom: 14px; animation: pulse-icon 1.5s infinite; }
-    @keyframes pulse-icon { 0%, 100% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.5)); } 50% { transform: scale(1.12); filter: drop-shadow(0 0 25px rgba(236, 72, 153, 0.8)); } }
-    .start-title { font-size: 20px; font-weight: 900; letter-spacing: 1px; text-transform: uppercase; background: linear-gradient(90deg, #f59e0b, #ec4899, #38bdf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 4px; }
-    .start-subtitle { font-size: 11px; color: #94a3b8; font-weight: 600; letter-spacing: 1px; margin-bottom: 24px; }
-    .btn-start-pulse { background: linear-gradient(135deg, #0284c7 0%, #7c3aed 50%, #ec4899 100%); color: #ffffff; font-size: 13px; font-weight: 900; padding: 14px 24px; border-radius: 999px; border: 2px solid rgba(255, 255, 255, 0.4); box-shadow: 0 0 30px rgba(124, 58, 237, 0.6), 0 0 10px rgba(255, 255, 255, 0.5); cursor: pointer; display: flex; align-items: center; gap: 10px; animation: btn-glow 2s infinite alternate; }
-    @keyframes btn-glow { from { transform: scale(1); box-shadow: 0 0 20px rgba(124, 58, 237, 0.5); } to { transform: scale(1.04); box-shadow: 0 0 35px rgba(236, 72, 153, 0.85); } }
-    .start-hint { margin-top: 16px; font-size: 10px; color: #64748b; }
-    #live-header { position: relative; z-index: 30; padding: 8px 12px 6px 12px; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(180deg, rgba(10, 14, 26, 0.95) 0%, rgba(10, 14, 26, 0.6) 100%); backdrop-filter: blur(8px); border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
-    .live-badge-group { display: flex; align-items: center; gap: 6px; }
-    .badge-live { background: linear-gradient(90deg, #ef4444, #dc2626); color: #fff; font-size: 9.5px; font-weight: 800; letter-spacing: 0.5px; padding: 2px 7px; border-radius: 9999px; display: flex; align-items: center; gap: 5px; box-shadow: 0 0 12px rgba(239, 68, 68, 0.6); animation: pulse-live 1.8s infinite; }
-    .pulse-dot { width: 5px; height: 5px; background-color: white; border-radius: 50%; }
-    @keyframes pulse-live { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.85; transform: scale(0.97); } }
-    .viewer-count { font-size: 10px; color: #94a3b8; font-weight: 600; background: rgba(255, 255, 255, 0.07); padding: 2px 6px; border-radius: 5px; }
-    .header-center-info { text-align: center; }
-    .game-title { font-size: 11.5px; font-weight: 900; letter-spacing: 0.8px; text-transform: uppercase; background: linear-gradient(90deg, #f59e0b, #ec4899, #38bdf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .header-actions { display: flex; align-items: center; gap: 5px; }
-    .btn-icon { background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.12); color: #e2e8f0; width: 26px; height: 26px; border-radius: 7px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 12px; transition: all 0.2s ease; }
-    .btn-icon:hover { background: rgba(255, 255, 255, 0.16); transform: scale(1.05); }
-    #leaderboard-overlay { position: absolute; top: 48px; left: 8px; right: 8px; z-index: 25; background: rgba(13, 17, 28, 0.88); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 12px; padding: 7px 10px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6); pointer-events: auto; }
-    .lb-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
-    .lb-title { font-size: 10.5px; font-weight: 800; color: #fbbf24; display: flex; align-items: center; gap: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
-    .lb-tile-stat { font-size: 9.5px; color: #94a3b8; font-weight: 600; }
-    .lb-list { display: flex; flex-direction: column; gap: 4px; }
-    .lb-row { display: flex; align-items: center; gap: 7px; background: rgba(255, 255, 255, 0.04); padding: 3px 6px; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.05); transition: all 0.3s ease; }
-    .lb-row.rank-1 { border-color: rgba(245, 158, 11, 0.45); background: linear-gradient(90deg, rgba(245, 158, 11, 0.18) 0%, rgba(255, 255, 255, 0.03) 100%); }
-    .lb-rank { font-size: 11px; font-weight: 800; width: 16px; text-align: center; }
-    .lb-avatar-img { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; box-shadow: 0 0 6px rgba(0, 0, 0, 0.6); flex-shrink: 0; border: 1px solid rgba(255, 255, 255, 0.3); }
-    .lb-info { flex: 1; min-width: 0; }
-    .lb-name-group { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px; }
-    .lb-name { font-size: 10px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #f8fafc; }
-    .lb-percent { font-size: 10px; font-weight: 800; }
-    .lb-bar-bg { height: 3.5px; background: rgba(255, 255, 255, 0.1); border-radius: 3px; overflow: hidden; }
-    .lb-bar-fill { height: 100%; border-radius: 3px; transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
-    #vip-alert { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0.7); width: 90%; z-index: 100; background: linear-gradient(135deg, rgba(245, 158, 11, 0.98), rgba(220, 38, 38, 0.98)); border: 2px solid #fef08a; border-radius: 16px; padding: 16px; text-align: center; box-shadow: 0 0 60px rgba(245, 158, 11, 0.9), 0 0 100px rgba(220, 38, 38, 0.7); opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    .start-title { font-size: 20px; font-weight: 900; letter-spacing: 1px; color: #f59e0b; margin-bottom: 4px; }
+    .btn-start-pulse { background: linear-gradient(135deg, #0284c7 0%, #ec4899 100%); color: #fff; font-size: 13px; font-weight: 900; padding: 14px 24px; border-radius: 999px; border: 2px solid rgba(255,255,255,0.4); cursor: pointer; display: flex; align-items: center; gap: 10px; }
+    #live-header { position: relative; z-index: 30; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; background: rgba(10, 14, 26, 0.8); border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .badge-live { background: #ef4444; color: #fff; font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 99px; }
+    .header-actions { display: flex; gap: 5px; }
+    .btn-icon { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); color: #e2e8f0; width: 26px; height: 26px; border-radius: 7px; cursor: pointer; }
+    #leaderboard-overlay { position: absolute; top: 48px; left: 8px; right: 8px; z-index: 25; background: rgba(13, 17, 28, 0.88); border-radius: 12px; padding: 7px 10px; }
+    .lb-header { display: flex; justify-content: space-between; font-size: 10.5px; font-weight: 800; color: #fbbf24; margin-bottom: 5px; }
+    .lb-row { display: flex; align-items: center; gap: 7px; background: rgba(255,255,255,0.04); padding: 3px 6px; border-radius: 6px; margin-bottom: 4px; }
+    .lb-avatar-img { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; }
+    .lb-info { flex: 1; }
+    .lb-name { font-size: 10px; font-weight: 700; color: #f8fafc; }
+    #vip-alert { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0.7); width: 90%; z-index: 100; background: #dc2626; border: 2px solid #fef08a; border-radius: 16px; padding: 16px; text-align: center; opacity: 0; transition: all 0.3s; }
     #vip-alert.active { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-    .vip-badge-tag { font-size: 10.5px; font-weight: 900; background: #000; color: #fde047; padding: 3px 10px; border-radius: 999px; display: inline-block; letter-spacing: 1.5px; margin-bottom: 6px; border: 1px solid #facc15; }
-    .vip-headline { font-size: 16px; font-weight: 900; color: #ffffff; text-transform: uppercase; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6); margin-bottom: 4px; }
-    .vip-sub { font-size: 11.5px; color: #fef08a; font-weight: 700; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6); }
-    #screen-dimmer { position: absolute; inset: 0; background: radial-gradient(circle, rgba(239, 68, 68, 0.3) 0%, rgba(0, 0, 0, 0.8) 100%); z-index: 80; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; }
-    #screen-dimmer.active { opacity: 1; }
-    #canvas-wrapper { position: relative; flex: 1; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; overflow: hidden; z-index: 10; }
+    .vip-headline { font-size: 16px; font-weight: 900; color: #fff; margin-bottom: 4px; }
+    #canvas-wrapper { position: relative; flex: 1; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; z-index: 10; }
     #warCanvas { display: block; width: 100%; height: 100%; background: #05070d; }
-    #event-ticker { position: absolute; bottom: 20px; left: 8px; right: 8px; z-index: 30; background: rgba(10, 14, 26, 0.88); backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 8px 12px; display: flex; align-items: center; gap: 6px; font-size: 11px; color: #e2e8f0; overflow: hidden; white-space: nowrap; pointer-events: none; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8); }
-    .ticker-icon { font-size: 14px; flex-shrink: 0; }
-    .ticker-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
-    .ticker-text b { color: #38bdf8; }
-    #simulator-dock { display: none !important; }
+    #event-ticker { position: absolute; bottom: 20px; left: 8px; right: 8px; z-index: 30; background: rgba(10, 14, 26, 0.88); border-radius: 8px; padding: 8px 12px; font-size: 11px; color: #e2e8f0; }
   </style>
 </head>
 <body>
   <div id="stream-container">
     <div id="start-overlay">
-      <div class="start-pulse-icon">👑</div>
       <div class="start-title">PERANG WILAYAH KANVAS</div>
-      <div class="start-subtitle">ENDLESS TIKTOK LIVE TURF WAR</div>
-      <button id="btn-start-game" class="btn-start-pulse">
-        <span>🔊</span>
-        <span>TAP UNTUK MEMULAI & AKTIFKAN AUDIO / TTS</span>
-      </button>
-      <div class="start-hint">Layar akan otomatis menjadi Penuh (Fullscreen) saat ditekan</div>
+      <button id="btn-start-game" class="btn-start-pulse">🔊 TAP UNTUK MEMULAI (AUTO FULLSCREEN)</button>
     </div>
     <header id="live-header">
-      <div class="live-badge-group">
-        <div class="badge-live"><span class="pulse-dot"></span>LIVE</div>
-        <div class="viewer-count"><span>👥</span> <span id="txt-viewers">0</span></div>
-      </div>
-      <div class="header-center-info">
-        <div class="game-title">⚔️ PERANG WILAYAH</div>
-      </div>
+      <div class="badge-live">LIVE</div>
+      <div style="font-size:11.5px; font-weight:900; color:#f59e0b;">⚔️ PERANG WILAYAH</div>
       <div class="header-actions">
-        <button id="btn-sound-toggle" class="btn-icon" title="Toggle Sound / TTS">🔊</button>
-        <button id="btn-lb-toggle" class="btn-icon" title="Toggle Leaderboard">🏆</button>
-        <button id="btn-fs-toggle" class="btn-icon" title="Mode Layar Penuh">🔲</button>
+        <button id="btn-sound-toggle" class="btn-icon">🔊</button>
+        <button id="btn-fs-toggle" class="btn-icon">🔲</button>
       </div>
     </header>
     <div id="leaderboard-overlay">
-      <div class="lb-header">
-        <span class="lb-title">👑 TOP PENGUASA WILAYAH</span>
-        <span class="lb-tile-stat" id="lb-summary-stat">375 Petak Total</span>
-      </div>
-      <div class="lb-list" id="lb-list-container"></div>
+      <div class="lb-header"><span>👑 TOP PENGUASA</span><span id="lb-summary-stat" style="color:#94a3b8">375 Petak Total</span></div>
+      <div id="lb-list-container"></div>
     </div>
-    <div id="vip-alert">
-      <div class="vip-badge-tag">💥 VIP ALERT: SENJATA UANG 💥</div>
-      <div class="vip-headline" id="vip-title">SULTAN BUDI MENEMBAKKAN SENJATA UANG!</div>
-      <div class="vip-sub">64 PETAK WILAYAH SECARA BRUTAL DIKUASAI!</div>
-    </div>
-    <div id="screen-dimmer"></div>
-    <div id="canvas-wrapper">
-      <canvas id="warCanvas"></canvas>
-    </div>
-    <div id="event-ticker">
-      <span class="ticker-icon">⚡</span>
-      <span class="ticker-text" id="ticker-msg">Menunggu injeksi data dari TikFinity Overlay...</span>
-    </div>
-    <footer id="simulator-dock"></footer>
+    <div id="vip-alert"><div class="vip-headline" id="vip-title">SULTAN MENEMBAKKAN SENJATA!</div></div>
+    <div id="canvas-wrapper"><canvas id="warCanvas"></canvas></div>
+    <div id="event-ticker"><span id="ticker-msg">🔄 Menginisialisasi injeksi internal...</span></div>
   </div>
 
   <script>
     (function () {
-      'use strict';
       const COLS = 15; const ROWS = 25; const TOTAL_TILES = COLS * ROWS;
       let audioEnabled = true; let audioCtx = null; let ttsUnlocked = false;
 
-      function getAudioContext() {
-        if (!audioCtx) { const AudioContextClass = window.AudioContext || window.webkitAudioContext; if (AudioContextClass) audioCtx = new AudioContextClass(); }
-        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume(); return audioCtx;
-      }
+      function getAudioContext() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === 'suspended') audioCtx.resume(); return audioCtx; }
+      const TTS = { speak(text) { if (!audioEnabled || !('speechSynthesis' in window)) return; window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.lang = 'id-ID'; window.speechSynthesis.speak(u); } };
+      const SoundFX = { playTap() { /* tap sound */ }, playRose() { /* rose sound */ }, playBomb() { /* bomb sound */ }, playMoneyGun() { /* money sound */ } };
 
-      const TTS = {
-        speak(text) {
-          if (!audioEnabled || !('speechSynthesis' in window)) return;
-          try { window.speechSynthesis.cancel(); const utterance = new SpeechSynthesisUtterance(text); utterance.lang = 'id-ID'; utterance.rate = 1.08; utterance.pitch = 1.05; const voices = window.speechSynthesis.getVoices(); const indonesianVoice = voices.find(v => v.lang.includes('id') || v.lang.includes('ID')); if (indonesianVoice) utterance.voice = indonesianVoice; window.speechSynthesis.speak(utterance); } catch (e) {}
-        }
-      };
-
-      const SoundFX = {
-        playTap() { if (!audioEnabled) return; try { const ctx = getAudioContext(); if (!ctx) return; const osc = ctx.createOscillator(); const gain = ctx.createGain(); osc.type = 'triangle'; osc.frequency.setValueAtTime(340, ctx.currentTime); osc.frequency.exponentialRampToValueAtTime(700, ctx.currentTime + 0.07); gain.gain.setValueAtTime(0.14, ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.07); osc.connect(gain); gain.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.07); } catch (e) {} },
-        playRose() { if (!audioEnabled) return; try { const ctx = getAudioContext(); if (!ctx) return; const now = ctx.currentTime; [523.25, 659.25, 783.99, 1046.5].forEach((freq, i) => { const osc = ctx.createOscillator(); const gain = ctx.createGain(); osc.type = 'sine'; osc.frequency.setValueAtTime(freq, now + i * 0.035); gain.gain.setValueAtTime(0.1, now + i * 0.035); gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.035 + 0.16); osc.connect(gain); gain.connect(ctx.destination); osc.start(now + i * 0.035); osc.stop(now + i * 0.035 + 0.18); }); } catch (e) {} },
-        playBomb() { if (!audioEnabled) return; try { const ctx = getAudioContext(); if (!ctx) return; const now = ctx.currentTime; const osc = ctx.createOscillator(); const gain = ctx.createGain(); osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, now); osc.frequency.exponentialRampToValueAtTime(32, now + 0.38); gain.gain.setValueAtTime(0.35, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4); osc.connect(gain); gain.connect(ctx.destination); osc.start(now); osc.stop(now + 0.4); const bufferSize = ctx.sampleRate * 0.18; const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate); const data = buffer.getChannelData(0); for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1; const noise = ctx.createBufferSource(); noise.buffer = buffer; const filter = ctx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.setValueAtTime(700, now); filter.frequency.linearRampToValueAtTime(80, now + 0.2); const ngain = ctx.createGain(); ngain.gain.setValueAtTime(0.2, now); ngain.gain.exponentialRampToValueAtTime(0.005, now + 0.2); noise.connect(filter); filter.connect(ngain); ngain.connect(ctx.destination); noise.start(now); } catch (e) {} },
-        playLock() { if (!audioEnabled) return; try { const ctx = getAudioContext(); if (!ctx) return; const now = ctx.currentTime; const osc = ctx.createOscillator(); const gain = ctx.createGain(); osc.type = 'square'; osc.frequency.setValueAtTime(260, now); osc.frequency.setValueAtTime(520, now + 0.07); gain.gain.setValueAtTime(0.2, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.22); osc.connect(gain); gain.connect(ctx.destination); osc.start(now); osc.stop(now + 0.22); } catch (e) {} },
-        playMoneyGun() { if (!audioEnabled) return; try { const ctx = getAudioContext(); if (!ctx) return; const now = ctx.currentTime; [196, 261.63, 329.63, 392, 523.25].forEach((freq, idx) => { const osc = ctx.createOscillator(); const gain = ctx.createGain(); osc.type = 'sawtooth'; osc.frequency.setValueAtTime(freq, now + idx * 0.08); gain.gain.setValueAtTime(0.25, now + idx * 0.08); gain.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.08 + 0.28); osc.connect(gain); gain.connect(ctx.destination); osc.start(now + idx * 0.08); osc.stop(now + idx * 0.08 + 0.3); }); } catch (e) {} }
-      };
-
-      function createAvatarSvgUri(name, bgGradStart, bgGradEnd, iconChar) {
-        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><defs><linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="${bgGradStart}"/><stop offset="100%" stop-color="${bgGradEnd}"/></linearGradient><filter id="glow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000" flood-opacity="0.6"/></filter></defs><circle cx="100" cy="100" r="95" fill="url(#grad)" stroke="#ffffff" stroke-width="6"/><text x="100" y="115" font-size="76" text-anchor="middle" dominant-baseline="middle" filter="url(#glow)">${iconChar}</text><text x="100" y="165" font-size="20" font-family="sans-serif" font-weight="900" fill="#ffffff" text-anchor="middle">${name.substring(0, 10)}</text></svg>`;
-        return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg.trim());
-      }
-
-      const ImageCache = {
-        cache: new Map(),
-        get(url) { if (!url) return null; if (this.cache.has(url)) { const img = this.cache.get(url); return (img.complete && img.naturalWidth > 0) ? img : null; } const img = new Image(); img.crossOrigin = 'anonymous'; img.src = url; this.cache.set(url, img); return null; }
-      };
+      const ImageCache = { cache: new Map(), get(url) { if (!url) return null; if (this.cache.has(url)) { const img = this.cache.get(url); return (img.complete && img.naturalWidth > 0) ? img : null; } const img = new Image(); img.crossOrigin = 'anonymous'; img.src = url; this.cache.set(url, img); return null; } };
 
       class Tile {
-        constructor(col, row, index) { this.col = col; this.row = row; this.index = index; this.isOwned = false; this.uniqueId = ''; this.ownerName = ''; this.ownerAvatar = ''; this.ownerColor = '#1e293b'; this.isLocked = false; this.lockEndTime = 0; this.isSultan = false; this.isFromTap = false; this.flashTimer = 0; this.rippleProgress = 0; }
-        claim(uid, name, av, col, isSultan = false, isFromTap = false) { this.isOwned = true; this.uniqueId = uid; this.ownerName = name; this.ownerAvatar = av; this.ownerColor = col; this.isSultan = isSultan; this.isFromTap = isFromTap; this.flashTimer = 1.0; this.rippleProgress = 1.0; }
-        lock(durSec) { this.isLocked = true; this.lockEndTime = Date.now() + durSec * 1000; this.flashTimer = 0.8; }
+        constructor(col, row, index) { this.col = col; this.row = row; this.index = index; this.isOwned = false; this.uniqueId = ''; this.ownerName = ''; this.ownerAvatar = ''; this.ownerColor = '#1e293b'; this.isLocked = false; this.lockEndTime = 0; }
+        claim(uid, name, av, col) { this.isOwned = true; this.uniqueId = uid; this.ownerName = name; this.ownerAvatar = av; this.ownerColor = col; }
+        lock(durSec) { this.isLocked = true; this.lockEndTime = Date.now() + durSec * 1000; }
         checkLockExpiration(now) { if (this.isLocked && now >= this.lockEndTime) { this.isLocked = false; this.lockEndTime = 0; return true; } return false; }
       }
 
       function computeMergedSquares(grid) {
-        const covered = Array.from({ length: ROWS }, () => Array(COLS).fill(false)); const merged = []; const maxSize = Math.min(COLS, ROWS);
-        for (let k = maxSize; k >= 2; k--) {
+        const covered = Array.from({ length: ROWS }, () => Array(COLS).fill(false)); const merged = [];
+        for (let k = Math.min(COLS, ROWS); k >= 2; k--) {
           for (let r = 0; r <= ROWS - k; r++) {
             for (let c = 0; c <= COLS - k; c++) {
               const base = grid[r * COLS + c]; if (!base.isOwned || covered[r][c]) continue;
-              const uid = base.uniqueId; const lk = !!base.isLocked; const tp = !!base.isFromTap; let isValid = true;
-              for (let dr = 0; dr < k; dr++) { for (let dc = 0; dc < k; dc++) { const t = grid[(r + dr) * COLS + (c + dc)]; if (!t.isOwned || t.uniqueId !== uid || !!t.isLocked !== lk || !!t.isFromTap !== tp || covered[r+dr][c+dc]) { isValid = false; break; } } if (!isValid) break; }
+              let isValid = true;
+              for (let dr = 0; dr < k; dr++) { for (let dc = 0; dc < k; dc++) { const t = grid[(r + dr) * COLS + (c + dc)]; if (!t.isOwned || t.uniqueId !== base.uniqueId || !!t.isLocked !== !!base.isLocked || covered[r+dr][c+dc]) { isValid = false; break; } } if (!isValid) break; }
               if (isValid) {
-                let maxLock = 0; let anySultan = false;
-                for (let dr = 0; dr < k; dr++) { for (let dc = 0; dc < k; dc++) { covered[r+dr][c+dc] = true; const t = grid[(r+dr)*COLS + (c+dc)]; if (t.isLocked && t.lockEndTime > maxLock) maxLock = t.lockEndTime; if (t.isSultan) anySultan = true; } }
-                merged.push({ col: c, row: r, size: k, uniqueId: uid, ownerName: base.ownerName, ownerAvatar: base.ownerAvatar, ownerColor: base.ownerColor, isLocked: lk, lockEndTime: maxLock, isSultan: anySultan, isFromTap: tp });
+                let maxLock = 0;
+                for (let dr = 0; dr < k; dr++) { for (let dc = 0; dc < k; dc++) { covered[r+dr][c+dc] = true; const t = grid[(r+dr)*COLS + (c+dc)]; if (t.isLocked && t.lockEndTime > maxLock) maxLock = t.lockEndTime; } }
+                merged.push({ col: c, row: r, size: k, uniqueId: base.uniqueId, ownerName: base.ownerName, ownerAvatar: base.ownerAvatar, ownerColor: base.ownerColor, isLocked: !!base.isLocked, lockEndTime: maxLock });
               }
             }
           }
         }
-        for (let r = 0; r < ROWS; r++) { for (let c = 0; c < COLS; c++) { if (!covered[r][c]) { const t = grid[r*COLS + c]; if (t.isOwned) { merged.push({ col: c, row: r, size: 1, uniqueId: t.uniqueId, ownerName: t.ownerName, ownerAvatar: t.ownerAvatar, ownerColor: t.ownerColor, isLocked: !!t.isLocked, lockEndTime: t.lockEndTime || 0, isSultan: t.isSultan, isFromTap: !!t.isFromTap }); } } } }
+        for (let r = 0; r < ROWS; r++) { for (let c = 0; c < COLS; c++) { if (!covered[r][c]) { const t = grid[r*COLS + c]; if (t.isOwned) merged.push({ col: c, row: r, size: 1, uniqueId: t.uniqueId, ownerName: t.ownerName, ownerAvatar: t.ownerAvatar, ownerColor: t.ownerColor, isLocked: t.isLocked, lockEndTime: t.lockEndTime }); } } }
         return merged;
       }
 
@@ -180,224 +96,71 @@
         constructor() {
           this.canvas = document.getElementById('warCanvas'); this.ctx = this.canvas.getContext('2d'); this.wrapper = document.getElementById('canvas-wrapper');
           this.grid = []; for (let r = 0; r < ROWS; r++) { for (let c = 0; c < COLS; c++) this.grid.push(new Tile(c, r, r * COLS + c)); }
-          this.particles = []; this.projectiles = []; this.floatingTexts = []; this.cameraShake = { x: 0, y: 0, duration: 0, intensity: 0 }; this.tapCounters = {}; this.dpr = window.devicePixelRatio || 1; this.lastTime = performance.now(); this.idleTime = 0; this.cachedMergedSquares = computeMergedSquares(this.grid);
-          
-          this.initResize(); 
-          this.initWebSocket(); // Sekarang menangkap injeksi TikFinity
-          this.startLoop(); 
-          this.updateLeaderboard();
-          
-          setInterval(() => { const now = Date.now(); let changed = false; this.grid.forEach(tile => { if (tile.checkLockExpiration(now)) changed = true; }); if (changed) this.onGridModified(); }, 300);
-          
-          document.getElementById('btn-sound-toggle').addEventListener('click', (e) => { audioEnabled = !audioEnabled; e.target.textContent = audioEnabled ? '🔊' : '🔇'; if (!audioEnabled && 'speechSynthesis' in window) window.speechSynthesis.cancel(); });
-          document.getElementById('btn-lb-toggle').addEventListener('click', () => { const lb = document.getElementById('leaderboard-overlay'); lb.style.display = lb.style.display === 'none' ? 'block' : 'none'; });
-
-          document.getElementById('btn-fs-toggle').addEventListener('click', () => {
-            if (!document.fullscreenElement) { document.documentElement.requestFullscreen().catch(err => console.log("Layar penuh ditolak browser.")); } else { document.exitFullscreen(); }
-          });
+          this.dpr = window.devicePixelRatio || 1; this.cachedMergedSquares = computeMergedSquares(this.grid); this.tapCounters = {};
+          this.initResize(); this.initWebSocket(); this.startLoop();
+          setInterval(() => { const now = Date.now(); let changed = false; this.grid.forEach(t => { if (t.checkLockExpiration(now)) changed = true; }); if (changed) this.onGridModified(); }, 300);
+          document.getElementById('btn-sound-toggle').addEventListener('click', (e) => { audioEnabled = !audioEnabled; e.target.textContent = audioEnabled ? '🔊' : '🔇'; });
+          document.getElementById('btn-fs-toggle').addEventListener('click', () => { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{}); else document.exitFullscreen(); });
         }
-
         initResize() { const resize = () => { const rect = this.wrapper.getBoundingClientRect(); this.canvas.width = rect.width * this.dpr; this.canvas.height = rect.height * this.dpr; this.tileWidth = (rect.width * this.dpr) / COLS; this.tileHeight = (rect.height * this.dpr) / ROWS; }; window.addEventListener('resize', resize); resize(); }
-
-        triggerTap(uid, name, av, col, tapAmount = 50) {
-          SoundFX.playTap(); this.tapCounters[uid] = (this.tapCounters[uid] || 0) + tapAmount; let claimedCount = 0;
-          while (this.tapCounters[uid] >= 50) {
-            this.tapCounters[uid] -= 50; const emptyTiles = this.grid.filter(t => !t.isOwned && !t.isLocked); let target = emptyTiles.length > 0 ? emptyTiles[Math.floor(Math.random() * emptyTiles.length)] : null;
-            if (!target) { const unlocked = this.grid.filter(t => !t.isLocked && t.uniqueId !== uid); if (unlocked.length > 0) target = unlocked[Math.floor(Math.random() * unlocked.length)]; }
-            if (target) { target.claim(uid, name, av, col, false, true); this.spawnFloatingText(target.col, target.row, '+1 TAP (ABU)', '#94a3b8'); this.spawnSparks(target.col, target.row, '#64748b', 8); claimedCount++; }
-          }
-          if (claimedCount > 0) { this.setTicker(`👆 <b>${name}</b> tap mencapai kelipatan 50! +${claimedCount} petak!`); this.onGridModified(); }
+        setTicker(text) { document.getElementById('ticker-msg').innerHTML = text; }
+        
+        triggerTap(uid, name, av, col, amt) {
+          this.tapCounters[uid] = (this.tapCounters[uid] || 0) + amt; let claims = 0;
+          while (this.tapCounters[uid] >= 50) { this.tapCounters[uid] -= 50; const empty = this.grid.filter(t => !t.isOwned && !t.isLocked); const target = empty.length > 0 ? empty[Math.floor(Math.random()*empty.length)] : this.grid.filter(t => !t.isLocked && t.uniqueId !== uid)[0]; if (target) { target.claim(uid, name, av, col); claims++; } }
+          if (claims > 0) { this.setTicker(`👆 <b>${name}</b> tap mencapai kelipatan 50!`); this.onGridModified(); }
         }
-
-        triggerRose(uid, name, av, col) {
-          SoundFX.playRose(); const userTiles = this.grid.filter(t => t.isOwned && t.uniqueId === uid); let t1 = null, t2 = null; const offsets = [[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[1,-1],[-1,1],[1,1]];
-          if (userTiles.length > 0) { const candidates = []; userTiles.forEach(ut => { offsets.forEach(([dc,dr]) => { const nc=ut.col+dc, nr=ut.row+dr; if(nc>=0&&nc<COLS&&nr>=0&&nr<ROWS) { const cand=this.grid[nr*COLS+nc]; if(cand.uniqueId!==uid && !cand.isLocked) candidates.push(cand); } }); }); if (candidates.length>0) t1 = candidates[Math.floor(Math.random()*candidates.length)]; }
-          if (!t1) { const avail = this.grid.filter(t => !t.isLocked && t.uniqueId !== uid); if (avail.length>0) t1 = avail[Math.floor(Math.random()*avail.length)]; }
-          if (t1) {
-            const neighbors = []; offsets.forEach(([dc,dr]) => { const nc=t1.col+dc, nr=t1.row+dr; if(nc>=0&&nc<COLS&&nr>=0&&nr<ROWS) { const cand=this.grid[nr*COLS+nc]; if(cand.index!==t1.index && !cand.isLocked && cand.uniqueId!==uid) neighbors.push(cand); } });
-            if (neighbors.length>0) { t2 = neighbors[Math.floor(Math.random()*neighbors.length)]; } else { const other = this.grid.filter(t => !t.isLocked && t.uniqueId!==uid && t.index!==t1.index); if (other.length>0) t2 = other[Math.floor(Math.random()*other.length)]; }
-            [t1, t2].filter(Boolean).forEach((target, i) => { const startX = Math.random() < 0.5 ? -40 : this.canvas.width + 40; this.projectiles.push({ type:'arrow', x:startX, y:Math.random()*this.canvas.height, targetX:(target.col+0.5)*this.tileWidth, targetY:(target.row+0.5)*this.tileHeight, speed:1300, color:'#f43f5e', targetTile:target, uniqueId:uid, ownerName:name, ownerAvatar:av, ownerColor:col, delay:i*0.12 }); });
-            const c = t2?2:1; this.setTicker(`🌹 <b>${name}</b> mengirim Mawar! Ekspansi ${c} petak!`); TTS.speak(`${name} mengirim Mawar!`);
-          } else { SoundFX.playLock(); }
-        }
-
-        triggerHeartBomb(uid, name, av, col) {
-          SoundFX.playBomb(); const startCol = Math.floor(Math.random() * (COLS - 2)); const startRow = Math.floor(Math.random() * (ROWS - 2)); const endX = (startCol + 1.5) * this.tileWidth; const endY = (startRow + 1.5) * this.tileHeight;
-          this.projectiles.push({ type:'bomb', x:endX, y:-50, targetX:endX, targetY:endY, speed:1400, color:'#ec4899', startCol, startRow, uniqueId:uid, ownerName:name, ownerAvatar:av, ownerColor:col });
-          this.setTicker(`🫰 <b>${name}</b> melempar BOM JARI HATI (3x3)!`); TTS.speak(`${name} menjatuhkan bom Jari Hati!`);
-        }
-
-        executeBombExplosion(startCol, startRow, uid, name, av, col) {
-          this.shakeScreen(0.35, 12); let taken = 0;
-          for(let r=startRow;r<startRow+3;r++) { for(let c=startCol;c<startCol+3;c++) { if(c>=0&&c<COLS&&r>=0&&r<ROWS) { const t = this.grid[r*COLS+c]; if(t.isLocked) { this.spawnFloatingText(t.col, t.row, '🛡️ KEBAL!', '#fbbf24'); } else { t.claim(uid, name, av, col); taken++; } } } }
-          this.spawnFloatingText(startCol+1, startRow+1, `💥 +${taken} PETAK!`, '#f43f5e', 18); this.onGridModified();
-        }
-
-        triggerLock(durSec, giftLabel, uid, name) {
-          SoundFX.playLock(); let userTiles = this.grid.filter(t => t.isOwned && t.uniqueId === uid);
-          if (userTiles.length === 0) { const avail = this.grid.filter(t => !t.isLocked); if(avail.length>0) { const fb = avail[Math.floor(Math.random()*avail.length)]; fb.claim(uid, name, AVATARS.custom, '#a855f7'); userTiles = [fb]; this.onGridModified(); } else return; }
-          const squares = this.cachedMergedSquares.filter(sq => sq.uniqueId===uid && sq.size>=2);
-          if (squares.length > 0) { squares.sort((a,b)=>b.size-a.size); const sq = squares[0]; for(let dr=0;dr<sq.size;dr++) { for(let dc=0;dc<sq.size;dc++) { const t = this.grid[(sq.row+dr)*COLS+(sq.col+dc)]; if(t) t.lock(durSec); } } this.setTicker(`🛡️ <b>${name}</b> mengamankan formasi miliknya!`); TTS.speak(`${name} mengamankan formasinya!`); }
-          else { const shuffled = [...userTiles].sort(()=>Math.random()-0.5).slice(0,16); shuffled.forEach(t => t.lock(durSec)); this.setTicker(`🛡️ <b>${name}</b> mengamankan petak acaknya!`); TTS.speak(`${name} mengamankan wilayahnya!`); }
+        triggerGift(uid, name, av, col, gift) {
+          const t = this.grid.filter(t => !t.isLocked && t.uniqueId !== uid);
+          if(gift.includes('rose') || gift.includes('mawar')) { if(t.length>0) t[Math.floor(Math.random()*t.length)].claim(uid, name, av, col); this.setTicker(`🌹 ${name} mengirim Mawar!`); }
+          else if(gift.includes('love') || gift.includes('cinta')) { this.grid.filter(t=>t.uniqueId===uid).slice(0,5).forEach(x=>x.lock(30)); this.setTicker(`🛡️ ${name} kebal 30 detik!`); }
+          else if(gift.includes('money')) { for(let i=0;i<64&&i<t.length;i++) t[i].claim(uid, name, av, col); this.setTicker(`💸 ${name} meluncurkan SENJATA UANG (64 Petak)!`); document.getElementById('vip-alert').classList.add('active'); setTimeout(()=>document.getElementById('vip-alert').classList.remove('active'), 3000); }
+          else { if(t.length>0) t[Math.floor(Math.random()*t.length)].claim(uid, name, av, col); }
           this.onGridModified();
-        }
-
-        triggerMoneyGun(uid, name, av, col) {
-          SoundFX.playMoneyGun(); const startCol = Math.floor(Math.random() * (COLS - 7)); const startRow = Math.floor(Math.random() * (ROWS - 7));
-          document.getElementById('vip-title').textContent = `${name.toUpperCase()} MELUNCURKAN SENJATA UANG!`; const alert = document.getElementById('vip-alert'); const dimmer = document.getElementById('screen-dimmer'); alert.classList.add('active'); dimmer.classList.add('active'); setTimeout(()=>{ alert.classList.remove('active'); dimmer.classList.remove('active'); }, 3500);
-          TTS.speak(`${name} meluncurkan senjata uang! Enam puluh empat petak wilayah dikuasai!`);
-          const targetX = (startCol+4)*this.tileWidth; const targetY = (startRow+4)*this.tileHeight;
-          this.projectiles.push({ type:'moneygun_barrage', x:targetX, y:-100, targetX, targetY, speed:1000, color:'#f59e0b', startCol, startRow, uniqueId:uid, ownerName:name, ownerAvatar:av, ownerColor:col });
-        }
-
-        executeMoneyGunDestruction(startCol, startRow, uid, name, av, col) {
-          this.shakeScreen(0.9, 24);
-          for(let r=startRow;r<startRow+8;r++) { for(let c=startCol;c<startCol+8;c++) { if(r<ROWS&&c<COLS) { const t = this.grid[r*COLS+c]; t.isLocked = false; t.lockEndTime = 0; t.claim(uid, name, av, col, true); } } }
-          this.onGridModified();
-        }
-
-        onGridModified() { this.cachedMergedSquares = computeMergedSquares(this.grid); this.updateLeaderboard(); }
-
-        updateLeaderboard() {
-          const counts = {}; let total = 0;
-          this.grid.forEach(t => { if(t.isOwned) { total++; if(!counts[t.uniqueId]) counts[t.uniqueId]={ name:t.ownerName, avatar:t.ownerAvatar, color:t.ownerColor, count:0 }; counts[t.uniqueId].count++; } });
-          const sorted = Object.values(counts).sort((a,b)=>b.count-a.count).slice(0,4);
-          document.getElementById('lb-summary-stat').textContent = `${total}/${TOTAL_TILES} Petak`;
-          let html = '';
-          sorted.forEach((p,i) => { const pct = ((p.count/TOTAL_TILES)*100).toFixed(1); html += `<div class="lb-row ${i===0?'rank-1':''}"><span class="lb-rank">${['🥇','🥈','🥉','4️⃣'][i]}</span><img class="lb-avatar-img" src="${p.avatar}" /><div class="lb-info"><div class="lb-name-group"><span class="lb-name">${p.name}</span><span class="lb-percent" style="color:${p.color}">${pct}%</span></div><div class="lb-bar-bg"><div class="lb-bar-fill" style="width:${pct}%;background:${p.color}"></div></div></div></div>`; });
-          document.getElementById('lb-list-container').innerHTML = html;
-        }
-
-        shakeScreen(dur, int) { this.cameraShake.duration=dur; this.cameraShake.intensity=int; }
-        spawnSparks(c, r, col, cnt=10) { }
-        spawnFloatingText(c, r, txt, col) { this.floatingTexts.push({ x:(c+0.5)*this.tileWidth, y:(r+0.5)*this.tileHeight, text:txt, color:col, fontSize:13, alpha:1, vy:-40}); }
-        setTicker(html) { document.getElementById('ticker-msg').innerHTML = html; }
-
-        startLoop() { const loop = (timestamp) => { const dt = Math.min((timestamp - this.lastTime)/1000, 0.1); this.lastTime = timestamp; this.idleTime += dt; this.update(dt); this.render(); requestAnimationFrame(loop); }; requestAnimationFrame(loop); }
-
-        update(dt) {
-          if(this.cameraShake.duration>0) { this.cameraShake.duration-=dt; this.cameraShake.x = (Math.random()*2-1)*this.cameraShake.intensity; this.cameraShake.y = (Math.random()*2-1)*this.cameraShake.intensity; } else { this.cameraShake.x=0; this.cameraShake.y=0; }
-          for(let i=this.projectiles.length-1;i>=0;i--) {
-            const p = this.projectiles[i]; if(p.delay>0) { p.delay-=dt; continue; }
-            const dx = p.targetX - p.x; const dy = p.targetY - p.y; const dist = Math.sqrt(dx*dx+dy*dy); const step = p.speed*dt;
-            if(dist<=step) {
-              if(p.type==='arrow') { if(p.targetTile.isLocked) { SoundFX.playLock(); const alt = this.grid.find(t=>!t.isLocked && t.uniqueId!==p.uniqueId); if(alt) alt.claim(p.uniqueId, p.ownerName, p.ownerAvatar, p.ownerColor); } else p.targetTile.claim(p.uniqueId, p.ownerName, p.ownerAvatar, p.ownerColor); this.onGridModified(); }
-              else if(p.type==='bomb') this.executeBombExplosion(p.startCol, p.startRow, p.uniqueId, p.ownerName, p.ownerAvatar, p.ownerColor);
-              else if(p.type==='moneygun_barrage') this.executeMoneyGunDestruction(p.startCol, p.startRow, p.uniqueId, p.ownerName, p.ownerAvatar, p.ownerColor);
-              this.projectiles.splice(i,1);
-            } else { p.x += (dx/dist)*step; p.y += (dy/dist)*step; }
-          }
-          for(let i=this.floatingTexts.length-1;i>=0;i--) { const f = this.floatingTexts[i]; f.y += f.vy*dt; f.alpha-=dt*0.9; if(f.alpha<=0) this.floatingTexts.splice(i,1); }
-        }
-
-        render() {
-          const ctx = this.ctx; const w = this.canvas.width; const h = this.canvas.height; const tw = this.tileWidth; const th = this.tileHeight;
-          const drawRoundRect = (x,y,rw,rh,r) => { if(ctx.roundRect) { ctx.beginPath(); ctx.roundRect(x,y,rw,rh,r); } };
-          ctx.save(); ctx.translate(this.cameraShake.x, this.cameraShake.y); ctx.fillStyle = '#06080e'; ctx.fillRect(0,0,w,h);
-          for(let i=0;i<this.grid.length;i++) { const t=this.grid[i]; if(!t.isOwned) { ctx.fillStyle='#090d16'; ctx.fillRect(t.col*tw+1, t.row*th+1, tw-2, th-2); ctx.strokeStyle='rgba(255,255,255,0.04)'; ctx.strokeRect(t.col*tw+1, t.row*th+1, tw-2, th-2); } }
-
-          this.cachedMergedSquares.forEach(sq => {
-            const sqX=sq.col*tw, sqY=sq.row*th, sqW=sq.size*tw, sqH=sq.size*th; const inset=1.5, bx=sqX+inset, by=sqY+inset, bw=sqW-inset*2, bh=sqH-inset*2; const corner = sq.size>1 ? Math.min(10, sq.size*3) : 2.5;
-            ctx.save(); ctx.fillStyle = sq.isFromTap ? '#475569' : sq.ownerColor; ctx.globalAlpha = Math.max(0.72, 0.90 + Math.sin(this.idleTime*2.5)*0.06); drawRoundRect(bx, by, bw, bh, corner); ctx.fill(); ctx.globalAlpha = 1.0;
-            if (sq.isSultan) { ctx.strokeStyle='#fde047'; ctx.lineWidth=sq.size>1?3:2; ctx.shadowColor='#f59e0b'; ctx.shadowBlur=16; } else if (sq.isFromTap) { ctx.strokeStyle = sq.size>1?'rgba(203,213,225,0.65)':'rgba(148,163,184,0.4)'; ctx.lineWidth=1; } else { ctx.strokeStyle = sq.size>1?'rgba(255,255,255,0.7)':'rgba(255,255,255,0.25)'; ctx.lineWidth=sq.size>1?2:1; }
-            drawRoundRect(bx,by,bw,bh,corner); ctx.stroke(); ctx.shadowBlur=0;
-            const cx = bx+bw/2, avD=Math.min(bw*0.54,bh*0.50); const fontSize=Math.max(8, Math.min(26, Math.floor(th*(sq.size===1?0.2:0.4)))); const textY = by+(bh)/2 + avD/2;
-            const img = ImageCache.get(sq.ownerAvatar);
-            if (img) { ctx.save(); ctx.beginPath(); ctx.arc(cx, by+(bh-avD-fontSize)/2 + avD/2, avD/2, 0, Math.PI*2); ctx.clip(); ctx.drawImage(img, cx-avD/2, by+(bh-avD-fontSize)/2, avD, avD); ctx.restore(); }
-            ctx.font = `900 ${fontSize}px sans-serif`; ctx.textAlign='center'; ctx.textBaseline='middle';
-            let nameStr = sq.ownerName.trim(); if (sq.size===1) nameStr = nameStr.split(' ')[0];
-            ctx.strokeStyle='rgba(0,0,0,0.95)'; ctx.lineWidth=3; ctx.strokeText(nameStr, cx, textY); ctx.fillStyle='#ffffff'; ctx.fillText(nameStr, cx, textY);
-            if (sq.isLocked) { const rem = Math.max(0, Math.ceil((sq.lockEndTime-Date.now())/1000)); ctx.strokeStyle=`rgba(255,215,0,0.9)`; ctx.lineWidth=3; drawRoundRect(bx,by,bw,bh,corner); ctx.stroke(); ctx.fillStyle='rgba(0,0,0,0.88)'; ctx.fillRect(bx+bw-20, by+2, 18, 14); ctx.fillStyle='#fde047'; ctx.font='bold 9px sans-serif'; ctx.fillText(`🔒${rem}s`, bx+bw-11, by+9); }
-            ctx.restore();
-          });
-          
-          this.floatingTexts.forEach(ft => { ctx.save(); ctx.globalAlpha=Math.max(0, ft.alpha); ctx.font=`900 ${ft.fontSize}px sans-serif`; ctx.fillStyle=ft.color; ctx.textAlign='center'; ctx.shadowColor='#000'; ctx.shadowBlur=6; ctx.fillText(ft.text, ft.x, ft.y); ctx.restore(); });
-          ctx.restore();
-        }
-
-        /* --- PENERIMA INJEKSI TIKFINITY OVERLAY --- */
-        initWebSocket() {
-          this.setTicker(`🔄 Menunggu injeksi data dari TikFinity Overlay...`);
-          let isConnected = false;
-
-          window.addEventListener('message', (event) => {
-            try {
-              let raw = event.data;
-              if (typeof raw === 'string') {
-                try { raw = JSON.parse(raw); } catch(e) {}
-              }
-              if (!raw) return;
-
-              let evType = (raw.event || raw.type || '').toLowerCase();
-              let payload = raw.data || raw;
-              
-              if (!evType && !payload.uniqueId) return;
-
-              if (!isConnected) {
-                isConnected = true;
-                this.setTicker(`🟢 TERSAMBUNG VIA TIKFINITY! Panggung siap.`);
-              }
-
-              const uid = payload.uniqueId || payload.userId || 'user_' + Math.floor(Math.random()*10000);
-              const name = payload.nickname || uid;
-              const avatar = payload.profilePictureUrl || payload.avatar || '';
-              const color = payload.color || '#38bdf8';
-
-              if (evType === 'like' || evType === 'tap') {
-                  const count = payload.likeCount || payload.count || 1;
-                  this.triggerTap(uid, name, avatar, color, count);
-              }
-
-              if (evType === 'gift') {
-                  if (payload.giftType === 1 && payload.repeatEnd === false) return;
-                  const gift = (payload.giftName || '').toLowerCase();
-                  if (gift.includes('rose') || gift.includes('mawar')) {
-                      this.triggerRose(uid, name, avatar, color);
-                  } else if (gift.includes('heart') || gift.includes('jari')) {
-                      this.triggerHeartBomb(uid, name, avatar, color);
-                  } else if (gift.includes('love') || gift.includes('cinta')) {
-                      this.triggerLock(30, 'Aku Cinta Kamu 💖', uid, name);
-                  } else if (gift.includes('donut') || gift.includes('donat')) {
-                      this.triggerLock(120, 'Donat 🍩', uid, name);
-                  } else if (gift.includes('money') || gift.includes('uang') || gift.includes('gun') || gift.includes('senjata')) {
-                      this.triggerMoneyGun(uid, name, avatar, color);
-                  } else {
-                      this.triggerRose(uid, name, avatar, color);
-                  }
-              }
-
-              if (evType === 'roomuser') {
-                  const viewerEl = document.getElementById('txt-viewers');
-                  if (viewerEl && payload.viewerCount) {
-                      viewerEl.textContent = payload.viewerCount > 1000 ? (payload.viewerCount / 1000).toFixed(1) + 'k' : payload.viewerCount;
-                  }
-              }
-            } catch(e) {}
-          });
-        }
-      }
-
-      function unlockAudioAndTTS() {
-        if (ttsUnlocked) return;
-        ttsUnlocked = true;
-        getAudioContext();
-        if ('speechSynthesis' in window) {
-          window.speechSynthesis.resume();
-          window.speechSynthesis.getVoices();
         }
         
-        if (!document.fullscreenElement) {
-          document.documentElement.requestFullscreen().catch(err => {
-            console.log("Auto-fullscreen diblokir, ketuk ikon kotak 🔲 di atas.");
+        onGridModified() {
+          this.cachedMergedSquares = computeMergedSquares(this.grid);
+          const counts = {}; let total = 0; this.grid.forEach(t => { if(t.isOwned) { total++; if(!counts[t.uniqueId]) counts[t.uniqueId]={name:t.ownerName, av:t.ownerAvatar, col:t.ownerColor, c:0}; counts[t.uniqueId].c++; }});
+          const sorted = Object.values(counts).sort((a,b)=>b.c-a.c).slice(0,4);
+          document.getElementById('lb-summary-stat').textContent = `${total}/${TOTAL_TILES} Petak`;
+          document.getElementById('lb-list-container').innerHTML = sorted.map((p,i) => `<div class="lb-row"><span style="width:15px">${i+1}.</span><img class="lb-avatar-img" src="${p.av}"><span class="lb-name">${p.name}</span><span style="margin-left:auto;font-size:10px;font-weight:bold;color:${p.col}">${((p.c/TOTAL_TILES)*100).toFixed(1)}%</span></div>`).join('');
+        }
+
+        startLoop() { const loop = () => { this.render(); requestAnimationFrame(loop); }; requestAnimationFrame(loop); }
+        render() {
+          const ctx = this.ctx; ctx.fillStyle = '#06080e'; ctx.fillRect(0,0,this.canvas.width,this.canvas.height);
+          this.grid.forEach(t => { if(!t.isOwned) { ctx.fillStyle='#090d16'; ctx.fillRect(t.col*this.tileWidth, t.row*this.tileHeight, this.tileWidth-1, this.tileHeight-1); }});
+          this.cachedMergedSquares.forEach(sq => {
+            const x=sq.col*this.tileWidth+1.5, y=sq.row*this.tileHeight+1.5, w=sq.size*this.tileWidth-3, h=sq.size*this.tileHeight-3;
+            ctx.fillStyle = sq.ownerColor; ctx.beginPath(); ctx.roundRect(x,y,w,h,3); ctx.fill(); ctx.strokeStyle='rgba(255,255,255,0.4)'; ctx.stroke();
+            const fs = Math.max(8, Math.min(26, Math.floor(this.tileHeight*(sq.size===1?0.2:0.4))));
+            ctx.font = `900 ${fs}px sans-serif`; ctx.textAlign='center'; ctx.textBaseline='middle';
+            let n = sq.ownerName.trim().split(' ')[0]; ctx.fillStyle='#fff'; ctx.fillText(n, x+w/2, y+h/2+10);
+            if(sq.isLocked) { ctx.fillStyle='#fde047'; ctx.fillRect(x+w-20, y+2, 18, 14); ctx.fillStyle='#000'; ctx.font='bold 9px sans-serif'; ctx.fillText('🔒', x+w-11, y+9); }
           });
         }
 
-        document.getElementById('start-overlay').classList.add('hidden');
-        setTimeout(() => TTS.speak('Sistem TikFinity siap beroperasi!'), 300);
+        initWebSocket() {
+          const targetId = 'milalala48';
+          try {
+            // Karena kita menyuntikkan script ini di dalam rumah Zerody,
+            // io() akan otomatis menembus tanpa CORS blok!
+            const socket = io(); 
+            socket.on('connect', () => { socket.emit('setUniqueId', targetId, { enableExtendedGiftInfo: true }); });
+            socket.on('setUniqueIdSuccess', () => { this.setTicker(`🟢 INJEKSI BERHASIL! Menunggu penonton @${targetId}...`); });
+            socket.on('like', (d) => this.triggerTap(d.uniqueId, d.nickname, d.profilePictureUrl, '#38bdf8', d.likeCount||1));
+            socket.on('gift', (d) => { if(d.giftType===1 && !d.repeatEnd) return; this.triggerGift(d.uniqueId, d.nickname, d.profilePictureUrl, '#f43f5e', (d.giftName||'').toLowerCase()); });
+          } catch (err) { this.setTicker('🔴 Gagal injeksi. Refresh halaman.'); }
+        }
       }
 
-      document.getElementById('start-overlay').addEventListener('click', unlockAudioAndTTS);
-      document.getElementById('btn-start-game').addEventListener('click', unlockAudioAndTTS);
+      document.getElementById('start-overlay').addEventListener('click', () => {
+        if (ttsUnlocked) return; ttsUnlocked = true; getAudioContext();
+        if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
+        document.getElementById('start-overlay').classList.add('hidden');
+        TTS.speak('Injeksi berhasil. Siap bertempur!');
+      });
       window.addEventListener('DOMContentLoaded', () => { window.gameInstance = new TurfWarGame(); });
     })();
   </script>
