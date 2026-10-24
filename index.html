@@ -6,9 +6,6 @@
   <title>Perang Wilayah Kanvas - TikTok Live @milalala48</title>
   <meta name="description" content="Game interaktif Perang Wilayah Kanvas (Endless Turf War) 9:16 untuk siaran langsung TikTok Live." />
   
-  <!-- KUNCI TERAKHIR: KITA SEDOT OTAKNYA LANGSUNG DARI SERVER PUSAT -->
-  <script src="https://tiktok-chat-reader.zerody.one/socket.io/socket.io.js"></script>
-
   <style>
     /* =========================================================
        CSS TIKTOK LIVE TURF WAR - PRODUCTION READY
@@ -111,7 +108,7 @@
     </div>
     <div id="event-ticker">
       <span class="ticker-icon">⚡</span>
-      <span class="ticker-text" id="ticker-msg">Persiapan sistem... Menunggu sambungan.</span>
+      <span class="ticker-text" id="ticker-msg">Menunggu injeksi data dari TikFinity Overlay...</span>
     </div>
     <footer id="simulator-dock"></footer>
   </div>
@@ -186,7 +183,7 @@
           this.particles = []; this.projectiles = []; this.floatingTexts = []; this.cameraShake = { x: 0, y: 0, duration: 0, intensity: 0 }; this.tapCounters = {}; this.dpr = window.devicePixelRatio || 1; this.lastTime = performance.now(); this.idleTime = 0; this.cachedMergedSquares = computeMergedSquares(this.grid);
           
           this.initResize(); 
-          this.initWebSocket(); 
+          this.initWebSocket(); // Sekarang menangkap injeksi TikFinity
           this.startLoop(); 
           this.updateLeaderboard();
           
@@ -318,53 +315,65 @@
           ctx.restore();
         }
 
-        /* --- KONEKSI RESMI VERSI COCOK (MATCHING) --- */
+        /* --- PENERIMA INJEKSI TIKFINITY OVERLAY --- */
         initWebSocket() {
-          const targetId = 'milalala48'; 
-          this.setTicker(`🔄 Memulai koneksi mesin (Satelit Zerody) untuk @${targetId}...`);
+          this.setTicker(`🔄 Menunggu injeksi data dari TikFinity Overlay...`);
           let isConnected = false;
 
-          // ALARM JIKA SERVER RUSAK/PENUH
-          setTimeout(() => {
-            if (!isConnected) {
-              this.setTicker(`🔴 SATELIT MACET: Server sedang sibuk/antre. Tarik layar untuk Refresh!`);
-            }
-          }, 10000);
+          window.addEventListener('message', (event) => {
+            try {
+              let raw = event.data;
+              if (typeof raw === 'string') {
+                try { raw = JSON.parse(raw); } catch(e) {}
+              }
+              if (!raw) return;
 
-          try {
-            const socket = io("https://tiktok-chat-reader.zerody.one");
+              let evType = (raw.event || raw.type || '').toLowerCase();
+              let payload = raw.data || raw;
+              
+              if (!evType && !payload.uniqueId) return;
 
-            socket.on('connect', () => {
-              isConnected = true;
-              socket.emit('setUniqueId', targetId, { enableExtendedGiftInfo: true });
-            });
+              if (!isConnected) {
+                isConnected = true;
+                this.setTicker(`🟢 TERSAMBUNG VIA TIKFINITY! Panggung siap.`);
+              }
 
-            socket.on('setUniqueIdSuccess', (state) => {
-              this.setTicker(`🟢 TERSAMBUNG! Menunggu penonton di room @${targetId}...`);
-            });
+              const uid = payload.uniqueId || payload.userId || 'user_' + Math.floor(Math.random()*10000);
+              const name = payload.nickname || uid;
+              const avatar = payload.profilePictureUrl || payload.avatar || '';
+              const color = payload.color || '#38bdf8';
 
-            socket.on('setUniqueIdFailed', (errorMessage) => {
-              this.setTicker(`🔴 GAGAL: ${errorMessage} (Pastikan Anda sudah LIVE)`);
-            });
+              if (evType === 'like' || evType === 'tap') {
+                  const count = payload.likeCount || payload.count || 1;
+                  this.triggerTap(uid, name, avatar, color, count);
+              }
 
-            socket.on('like', (data) => {
-              const uid = data.uniqueId; const name = data.nickname; const avatar = data.profilePictureUrl; const color = '#38bdf8'; const tapCount = data.likeCount || 1;
-              this.triggerTap(uid, name, avatar, color, tapCount);
-            });
+              if (evType === 'gift') {
+                  if (payload.giftType === 1 && payload.repeatEnd === false) return;
+                  const gift = (payload.giftName || '').toLowerCase();
+                  if (gift.includes('rose') || gift.includes('mawar')) {
+                      this.triggerRose(uid, name, avatar, color);
+                  } else if (gift.includes('heart') || gift.includes('jari')) {
+                      this.triggerHeartBomb(uid, name, avatar, color);
+                  } else if (gift.includes('love') || gift.includes('cinta')) {
+                      this.triggerLock(30, 'Aku Cinta Kamu 💖', uid, name);
+                  } else if (gift.includes('donut') || gift.includes('donat')) {
+                      this.triggerLock(120, 'Donat 🍩', uid, name);
+                  } else if (gift.includes('money') || gift.includes('uang') || gift.includes('gun') || gift.includes('senjata')) {
+                      this.triggerMoneyGun(uid, name, avatar, color);
+                  } else {
+                      this.triggerRose(uid, name, avatar, color);
+                  }
+              }
 
-            socket.on('gift', (data) => {
-              if (data.giftType === 1 && !data.repeatEnd) return; 
-              const uid = data.uniqueId; const name = data.nickname; const avatar = data.profilePictureUrl; const color = '#f43f5e'; const gift = (data.giftName || '').toLowerCase();
-              if (gift.includes('rose') || gift.includes('mawar')) { this.triggerRose(uid, name, avatar, color); } else if (gift.includes('heart') || gift.includes('jari')) { this.triggerHeartBomb(uid, name, avatar, color); } else if (gift.includes('love') || gift.includes('cinta')) { this.triggerLock(30, 'Aku Cinta Kamu 💖', uid, name); } else if (gift.includes('donut') || gift.includes('donat')) { this.triggerLock(120, 'Donat 🍩', uid, name); } else if (gift.includes('money') || gift.includes('uang') || gift.includes('gun') || gift.includes('senjata')) { this.triggerMoneyGun(uid, name, avatar, color); } else { this.triggerRose(uid, name, avatar, color); }
-            });
-
-            socket.on('roomUser', (data) => {
-               const viewerEl = document.getElementById('txt-viewers');
-               if (viewerEl && data.viewerCount) { viewerEl.textContent = data.viewerCount > 1000 ? (data.viewerCount / 1000).toFixed(1) + 'k' : data.viewerCount; }
-            });
-          } catch (err) {
-            this.setTicker('🔴 Gagal memuat skrip penyadap data.');
-          }
+              if (evType === 'roomuser') {
+                  const viewerEl = document.getElementById('txt-viewers');
+                  if (viewerEl && payload.viewerCount) {
+                      viewerEl.textContent = payload.viewerCount > 1000 ? (payload.viewerCount / 1000).toFixed(1) + 'k' : payload.viewerCount;
+                  }
+              }
+            } catch(e) {}
+          });
         }
       }
 
@@ -384,7 +393,7 @@
         }
 
         document.getElementById('start-overlay').classList.add('hidden');
-        setTimeout(() => TTS.speak('Sistem penyadap TikTok siap beroperasi!'), 300);
+        setTimeout(() => TTS.speak('Sistem TikFinity siap beroperasi!'), 300);
       }
 
       document.getElementById('start-overlay').addEventListener('click', unlockAudioAndTTS);
