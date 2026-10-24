@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
@@ -77,7 +77,7 @@
         <span>🔊</span>
         <span>TAP UNTUK MEMULAI & AKTIFKAN AUDIO / TTS</span>
       </button>
-      <div class="start-hint">Klik tombol ini untuk membuka blokir suara TTS Bahasa Indonesia</div>
+      <div class="start-hint">Layar akan otomatis menjadi Penuh (Fullscreen) saat ditekan</div>
     </div>
     <header id="live-header">
       <div class="live-badge-group">
@@ -90,8 +90,8 @@
       <div class="header-actions">
         <button id="btn-sound-toggle" class="btn-icon" title="Toggle Sound / TTS">🔊</button>
         <button id="btn-lb-toggle" class="btn-icon" title="Toggle Leaderboard">🏆</button>
-        <!-- Tombol Rantai Disembunyikan Karena Koneksi Otomatis -->
-        <button id="btn-ws-modal" class="btn-icon" style="display:none;" title="TikTok Live WebSocket">🔗</button>
+        <!-- Tombol Layar Penuh Manual (Jaga-jaga) -->
+        <button id="btn-fs-toggle" class="btn-icon" title="Mode Layar Penuh">🔲</button>
       </div>
     </header>
     <div id="leaderboard-overlay">
@@ -208,13 +208,23 @@
           this.particles = []; this.projectiles = []; this.floatingTexts = []; this.cameraShake = { x: 0, y: 0, duration: 0, intensity: 0 }; this.tapCounters = {}; this.dpr = window.devicePixelRatio || 1; this.lastTime = performance.now(); this.idleTime = 0; this.cachedMergedSquares = computeMergedSquares(this.grid);
           
           this.initResize(); 
-          this.initWebSocket(); // LANGSUNG MENGHUBUNGKAN SECARA OTOMATIS
+          this.initWebSocket(); 
           this.startLoop(); 
           this.updateLeaderboard();
           
           setInterval(() => { const now = Date.now(); let changed = false; this.grid.forEach(tile => { if (tile.checkLockExpiration(now)) changed = true; }); if (changed) this.onGridModified(); }, 300);
+          
           document.getElementById('btn-sound-toggle').addEventListener('click', (e) => { audioEnabled = !audioEnabled; e.target.textContent = audioEnabled ? '🔊' : '🔇'; if (!audioEnabled && 'speechSynthesis' in window) window.speechSynthesis.cancel(); });
           document.getElementById('btn-lb-toggle').addEventListener('click', () => { const lb = document.getElementById('leaderboard-overlay'); lb.style.display = lb.style.display === 'none' ? 'block' : 'none'; });
+
+          // TOMBOL LAYAR PENUH MANUAL
+          document.getElementById('btn-fs-toggle').addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+              document.documentElement.requestFullscreen().catch(err => console.log("Gagal masuk layar penuh."));
+            } else {
+              document.exitFullscreen();
+            }
+          });
         }
 
         initResize() { const resize = () => { const rect = this.wrapper.getBoundingClientRect(); this.canvas.width = rect.width * this.dpr; this.canvas.height = rect.height * this.dpr; this.tileWidth = (rect.width * this.dpr) / COLS; this.tileHeight = (rect.height * this.dpr) / ROWS; }; window.addEventListener('resize', resize); resize(); }
@@ -336,72 +346,34 @@
           ctx.restore();
         }
 
-        /* --- KONEKSI OTOMATIS TIKTOK TANPA APLIKASI TAMBAHAN --- */
         initWebSocket() {
           const targetId = 'milalala48'; 
           this.setTicker(`🔄 Menghubungkan ke pusat data TikTok untuk @${targetId}...`);
 
           try {
-            // Menggunakan Library Socket.io yang ditanam di <head>
             const socket = io("https://tiktok-chat-reader.zerody.one");
-
             socket.on('connect', () => {
-              // Minta server untuk menyadap room @milalala48
               socket.emit('setUniqueId', targetId, { enableExtendedGiftInfo: true });
             });
-
             socket.on('setUniqueIdSuccess', (state) => {
               this.setTicker(`🟢 TERSAMBUNG! Menunggu penonton di room @${targetId}...`);
             });
-
             socket.on('setUniqueIdFailed', (errorMessage) => {
               this.setTicker(`🔴 GAGAL: ${errorMessage} (Pastikan Anda sudah LIVE)`);
             });
-
-            // Menerima data Like / Tap
             socket.on('like', (data) => {
-              const uid = data.uniqueId;
-              const name = data.nickname;
-              const avatar = data.profilePictureUrl;
-              const color = '#38bdf8';
-              const tapCount = data.likeCount || 1;
+              const uid = data.uniqueId; const name = data.nickname; const avatar = data.profilePictureUrl; const color = '#38bdf8'; const tapCount = data.likeCount || 1;
               this.triggerTap(uid, name, avatar, color, tapCount);
             });
-
-            // Menerima data Gift
             socket.on('gift', (data) => {
-              // Filter untuk Mawar (gift berulang) agar tidak spam berlebihan
               if (data.giftType === 1 && !data.repeatEnd) return; 
-
-              const uid = data.uniqueId;
-              const name = data.nickname;
-              const avatar = data.profilePictureUrl;
-              const color = '#f43f5e';
-              const gift = (data.giftName || '').toLowerCase();
-
-              if (gift.includes('rose') || gift.includes('mawar')) {
-                this.triggerRose(uid, name, avatar, color);
-              } else if (gift.includes('heart') || gift.includes('jari')) {
-                this.triggerHeartBomb(uid, name, avatar, color);
-              } else if (gift.includes('love') || gift.includes('cinta')) {
-                this.triggerLock(30, 'Aku Cinta Kamu 💖', uid, name);
-              } else if (gift.includes('donut') || gift.includes('donat')) {
-                this.triggerLock(120, 'Donat 🍩', uid, name);
-              } else if (gift.includes('money') || gift.includes('uang') || gift.includes('gun') || gift.includes('senjata')) {
-                this.triggerMoneyGun(uid, name, avatar, color);
-              } else {
-                this.triggerRose(uid, name, avatar, color); // Fallback ke mawar
-              }
+              const uid = data.uniqueId; const name = data.nickname; const avatar = data.profilePictureUrl; const color = '#f43f5e'; const gift = (data.giftName || '').toLowerCase();
+              if (gift.includes('rose') || gift.includes('mawar')) { this.triggerRose(uid, name, avatar, color); } else if (gift.includes('heart') || gift.includes('jari')) { this.triggerHeartBomb(uid, name, avatar, color); } else if (gift.includes('love') || gift.includes('cinta')) { this.triggerLock(30, 'Aku Cinta Kamu 💖', uid, name); } else if (gift.includes('donut') || gift.includes('donat')) { this.triggerLock(120, 'Donat 🍩', uid, name); } else if (gift.includes('money') || gift.includes('uang') || gift.includes('gun') || gift.includes('senjata')) { this.triggerMoneyGun(uid, name, avatar, color); } else { this.triggerRose(uid, name, avatar, color); }
             });
-
-            // Menerima data jumlah penonton
             socket.on('roomUser', (data) => {
                const viewerEl = document.getElementById('txt-viewers');
-               if (viewerEl && data.viewerCount) {
-                 viewerEl.textContent = data.viewerCount > 1000 ? (data.viewerCount / 1000).toFixed(1) + 'k' : data.viewerCount;
-               }
+               if (viewerEl && data.viewerCount) { viewerEl.textContent = data.viewerCount > 1000 ? (data.viewerCount / 1000).toFixed(1) + 'k' : data.viewerCount; }
             });
-
           } catch (err) {
             this.setTicker('🔴 Gagal memuat skrip penyadap data.');
           }
@@ -416,6 +388,14 @@
           window.speechSynthesis.resume();
           window.speechSynthesis.getVoices();
         }
+        
+        // FITUR OTOMATIS LAYAR PENUH (FULLSCREEN)
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen().catch(err => {
+            console.log("Auto-fullscreen diblokir browser, gunakan tombol 🔲 di atas.");
+          });
+        }
+
         document.getElementById('start-overlay').classList.add('hidden');
         setTimeout(() => TTS.speak('Sistem penyadap TikTok berhasil terhubung ke room. Selamat bertempur!'), 300);
       }
