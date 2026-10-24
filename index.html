@@ -6,8 +6,8 @@
   <title>Perang Wilayah Kanvas - TikTok Live @milalala48</title>
   <meta name="description" content="Game interaktif Perang Wilayah Kanvas (Endless Turf War) 9:16 untuk siaran langsung TikTok Live." />
   
-  <!-- OTAK PENYADAP DATA DITANAM DI SINI (SOCKET.IO) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+  <!-- KUNCI TERAKHIR: KITA SEDOT OTAKNYA LANGSUNG DARI SERVER PUSAT -->
+  <script src="https://tiktok-chat-reader.zerody.one/socket.io/socket.io.js"></script>
 
   <style>
     /* =========================================================
@@ -196,7 +196,7 @@
           document.getElementById('btn-lb-toggle').addEventListener('click', () => { const lb = document.getElementById('leaderboard-overlay'); lb.style.display = lb.style.display === 'none' ? 'block' : 'none'; });
 
           document.getElementById('btn-fs-toggle').addEventListener('click', () => {
-            if (!document.fullscreenElement) { document.documentElement.requestFullscreen().catch(err => console.log("Layar penuh ditolak.")); } else { document.exitFullscreen(); }
+            if (!document.fullscreenElement) { document.documentElement.requestFullscreen().catch(err => console.log("Layar penuh ditolak browser.")); } else { document.exitFullscreen(); }
           });
         }
 
@@ -318,20 +318,24 @@
           ctx.restore();
         }
 
-        /* --- JALUR RESMI (TANPA PENDOBRAK) + RADAR ERROR --- */
+        /* --- KONEKSI RESMI VERSI COCOK (MATCHING) --- */
         initWebSocket() {
           const targetId = 'milalala48'; 
-          this.setTicker(`🔄 Memulai koneksi resmi ke TikTok untuk @${targetId}...`);
+          this.setTicker(`🔄 Memulai koneksi mesin (Satelit Zerody) untuk @${targetId}...`);
+          let isConnected = false;
+
+          // ALARM JIKA SERVER RUSAK/PENUH
+          setTimeout(() => {
+            if (!isConnected) {
+              this.setTicker(`🔴 SATELIT MACET: Server sedang sibuk/antre. Tarik layar untuk Refresh!`);
+            }
+          }, 10000);
 
           try {
-            // KODE KEMBALI NORMAL, TANPA PAKSAAN TRANSPORT
-            const socket = io("https://tiktok-chat-reader.zerody.one", {
-              secure: true,
-              reconnection: true,
-              reconnectionAttempts: 5
-            });
+            const socket = io("https://tiktok-chat-reader.zerody.one");
 
             socket.on('connect', () => {
+              isConnected = true;
               socket.emit('setUniqueId', targetId, { enableExtendedGiftInfo: true });
             });
 
@@ -340,16 +344,7 @@
             });
 
             socket.on('setUniqueIdFailed', (errorMessage) => {
-              this.setTicker(`🔴 GAGAL: Akun belum LIVE atau dibatasi umur (18+)`);
-            });
-
-            // SENSOR JIKA ADA BLOKIRAN BARU
-            socket.on('connect_error', (err) => {
-              this.setTicker(`🔴 KONEKSI DITOLAK: ${err.message}. Coba refresh.`);
-            });
-            
-            socket.on('disconnect', (reason) => {
-              this.setTicker(`🔴 TERPUTUS DARI SATELIT: ${reason}`);
+              this.setTicker(`🔴 GAGAL: ${errorMessage} (Pastikan Anda sudah LIVE)`);
             });
 
             socket.on('like', (data) => {
@@ -368,7 +363,7 @@
                if (viewerEl && data.viewerCount) { viewerEl.textContent = data.viewerCount > 1000 ? (data.viewerCount / 1000).toFixed(1) + 'k' : data.viewerCount; }
             });
           } catch (err) {
-            this.setTicker('🔴 Gagal memuat sistem koneksi.');
+            this.setTicker('🔴 Gagal memuat skrip penyadap data.');
           }
         }
       }
