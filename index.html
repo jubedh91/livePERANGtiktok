@@ -1,195 +1,939 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Perang Wilayah Kanvas - TikTok Live @milalala48</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
-    body { background-color: #05070d; color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; min-height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden; background-image: radial-gradient(circle at 50% 10%, rgba(99, 102, 241, 0.16), transparent 45%), radial-gradient(circle at 80% 85%, rgba(236, 72, 153, 0.14), transparent 45%), linear-gradient(180deg, #070913 0%, #030407 100%); }
-    #stream-container { position: relative; width: 100%; height: 100vh; max-height: 100vh; aspect-ratio: 9/16; max-width: calc(100vh * (9/16)); background: #090d16; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 0 60px rgba(0, 0, 0, 0.95); }
-    #start-overlay { position: absolute; inset: 0; z-index: 200; background: rgba(4, 7, 15, 0.92); backdrop-filter: blur(14px); display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 24px; text-align: center; cursor: pointer; transition: opacity 0.3s ease, visibility 0.3s ease; }
-    #start-overlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
-    .start-title { font-size: 20px; font-weight: 900; letter-spacing: 1px; color: #f59e0b; margin-bottom: 4px; }
-    .btn-start-pulse { background: linear-gradient(135deg, #0284c7 0%, #ec4899 100%); color: #fff; font-size: 13px; font-weight: 900; padding: 14px 24px; border-radius: 999px; border: 2px solid rgba(255,255,255,0.4); cursor: pointer; display: flex; align-items: center; gap: 10px; }
-    #live-header { position: relative; z-index: 30; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; background: rgba(10, 14, 26, 0.8); border-bottom: 1px solid rgba(255,255,255,0.08); }
-    .badge-live { background: #ef4444; color: #fff; font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 99px; }
-    .header-actions { display: flex; gap: 5px; }
-    .btn-icon { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); color: #e2e8f0; width: 26px; height: 26px; border-radius: 7px; cursor: pointer; }
-    #leaderboard-overlay { position: absolute; top: 48px; left: 8px; right: 8px; z-index: 25; background: rgba(13, 17, 28, 0.88); border-radius: 12px; padding: 7px 10px; }
-    .lb-header { display: flex; justify-content: space-between; font-size: 10.5px; font-weight: 800; color: #fbbf24; margin-bottom: 5px; }
-    .lb-row { display: flex; align-items: center; gap: 7px; background: rgba(255,255,255,0.04); padding: 3px 6px; border-radius: 6px; margin-bottom: 4px; }
-    .lb-avatar-img { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; }
-    .lb-info { flex: 1; }
-    .lb-name { font-size: 10px; font-weight: 700; color: #f8fafc; }
-    #vip-alert { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0.7); width: 90%; z-index: 100; background: #dc2626; border: 2px solid #fef08a; border-radius: 16px; padding: 16px; text-align: center; opacity: 0; transition: all 0.3s; }
-    #vip-alert.active { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-    .vip-headline { font-size: 16px; font-weight: 900; color: #fff; margin-bottom: 4px; }
-    #canvas-wrapper { position: relative; flex: 1; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; z-index: 10; }
-    #warCanvas { display: block; width: 100%; height: 100%; background: #05070d; }
-    #event-ticker { position: absolute; bottom: 20px; left: 8px; right: 8px; z-index: 30; background: rgba(10, 14, 26, 0.88); border-radius: 8px; padding: 8px 12px; font-size: 11px; color: #e2e8f0; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: #05070d;
+      color: #f1f5f9;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      background-image:
+        radial-gradient(circle at 50% 10%, rgba(99, 102, 241, 0.16), transparent 45%),
+        radial-gradient(circle at 80% 85%, rgba(236, 72, 153, 0.14), transparent 45%),
+        linear-gradient(180deg, #070913 0%, #030407 100%);
+    }
+
+    #stream-container {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      max-height: 100vh;
+      aspect-ratio: 9/16;
+      max-width: calc(100vh * (9/16));
+      background: #090d16;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 0 60px rgba(0, 0, 0, 0.95);
+    }
+
+    #start-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 200;
+      background: rgba(4, 7, 15, 0.92);
+      backdrop-filter: blur(14px);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    #start-overlay.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .start-title {
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      color: #f59e0b;
+      margin-bottom: 4px;
+    }
+
+    .btn-start-pulse {
+      background: linear-gradient(135deg, #0284c7 0%, #ec4899 100%);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 900;
+      padding: 14px 24px;
+      border-radius: 999px;
+      border: 2px solid rgba(255,255,255,0.4);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    #live-header {
+      position: relative;
+      z-index: 30;
+      padding: 8px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(10, 14, 26, 0.8);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .badge-live {
+      background: #ef4444;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 99px;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 5px;
+    }
+
+    .btn-icon {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: #e2e8f0;
+      width: 26px;
+      height: 26px;
+      border-radius: 7px;
+      cursor: pointer;
+      font-size: 10px;
+    }
+
+    #leaderboard-overlay {
+      position: absolute;
+      top: 48px;
+      left: 8px;
+      right: 8px;
+      z-index: 25;
+      background: rgba(13, 17, 28, 0.88);
+      border-radius: 12px;
+      padding: 7px 10px;
+    }
+
+    .lb-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10.5px;
+      font-weight: 800;
+      color: #fbbf24;
+      margin-bottom: 5px;
+    }
+
+    .lb-row {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      background: rgba(255,255,255,0.04);
+      padding: 3px 6px;
+      border-radius: 6px;
+      margin-bottom: 4px;
+    }
+
+    .lb-avatar-img {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .lb-info {
+      flex: 1;
+    }
+
+    .lb-name {
+      font-size: 10px;
+      font-weight: 700;
+      color: #f8fafc;
+    }
+
+    #vip-alert {
+      position: absolute;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.7);
+      width: 90%;
+      z-index: 100;
+      background: #dc2626;
+      border: 2px solid #fef08a;
+      border-radius: 16px;
+      padding: 16px;
+      text-align: center;
+      opacity: 0;
+      transition: all 0.3s;
+    }
+
+    #vip-alert.active {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .vip-headline {
+      font-size: 16px;
+      font-weight: 900;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+
+    #canvas-wrapper {
+      position: relative;
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10;
+    }
+
+    #warCanvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      background: #05070d;
+    }
+
+    #event-ticker {
+      position: absolute;
+      bottom: 20px;
+      left: 8px;
+      right: 8px;
+      z-index: 30;
+      background: rgba(10, 14, 26, 0.88);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 11px;
+      color: #e2e8f0;
+    }
   </style>
 </head>
+
 <body>
   <div id="stream-container">
+
     <div id="start-overlay">
       <div class="start-title">PERANG WILAYAH KANVAS</div>
-      <button id="btn-start-game" class="btn-start-pulse">馃攰 TAP UNTUK MEMULAI (AUTO FULLSCREEN)</button>
+      <button id="btn-start-game" class="btn-start-pulse">
+        TAP UNTUK MEMULAI (AUTO FULLSCREEN)
+      </button>
     </div>
+
     <header id="live-header">
       <div class="badge-live">LIVE</div>
-      <div style="font-size:11.5px; font-weight:900; color:#f59e0b;">鈿旓笍 PERANG WILAYAH</div>
+
+      <div style="font-size:11.5px; font-weight:900; color:#f59e0b;">
+        PERANG WILAYAH
+      </div>
+
       <div class="header-actions">
-        <button id="btn-sound-toggle" class="btn-icon">馃攰</button>
-        <button id="btn-fs-toggle" class="btn-icon">馃敳</button>
+        <button id="btn-sound-toggle" class="btn-icon">SUARA</button>
+        <button id="btn-fs-toggle" class="btn-icon">LAYAR</button>
       </div>
     </header>
+
     <div id="leaderboard-overlay">
-      <div class="lb-header"><span>馃憫 TOP PENGUASA</span><span id="lb-summary-stat" style="color:#94a3b8">375 Petak Total</span></div>
+      <div class="lb-header">
+        <span>TOP PENGUASA</span>
+        <span id="lb-summary-stat" style="color:#94a3b8">375 Petak Total</span>
+      </div>
       <div id="lb-list-container"></div>
     </div>
-    <div id="vip-alert"><div class="vip-headline" id="vip-title">SULTAN MENEMBAKKAN SENJATA!</div></div>
-    <div id="canvas-wrapper"><canvas id="warCanvas"></canvas></div>
-    <div id="event-ticker"><span id="ticker-msg">馃攧 Menghubungkan ke Perang Wilayah Bridge...</span></div>
+
+    <div id="vip-alert">
+      <div class="vip-headline" id="vip-title">
+        SULTAN MENEMBAKKAN SENJATA!
+      </div>
+    </div>
+
+    <div id="canvas-wrapper">
+      <canvas id="warCanvas"></canvas>
+    </div>
+
+    <div id="event-ticker">
+      <span id="ticker-msg">Menghubungkan ke Perang Wilayah Bridge...</span>
+    </div>
+
   </div>
 
   <script>
     (function () {
-      const COLS = 15; const ROWS = 25; const TOTAL_TILES = COLS * ROWS;
+      const COLS = 15;
+      const ROWS = 25;
+      const TOTAL_TILES = COLS * ROWS;
       const WORKER_WS = "wss://perang-wilayah-bridge.destiyantomi.workers.dev/ws";
-      let audioEnabled = true; let audioCtx = null; let ttsUnlocked = false;
 
-      function getAudioContext() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === 'suspended') audioCtx.resume(); return audioCtx; }
-      const TTS = { speak(text) { if (!audioEnabled || !('speechSynthesis' in window)) return; window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.lang = 'id-ID'; window.speechSynthesis.speak(u); } };
-      const SoundFX = { playTap() {}, playRose() {}, playBomb() {}, playMoneyGun() {} };
-      const ImageCache = { cache: new Map(), get(url) { if (!url) return null; if (this.cache.has(url)) { const img = this.cache.get(url); return (img.complete && img.naturalWidth > 0) ? img : null; } const img = new Image(); img.crossOrigin = 'anonymous'; img.src = url; this.cache.set(url, img); return null; } };
+      let audioEnabled = true;
+      let audioCtx = null;
+      let ttsUnlocked = false;
+
+      function getAudioContext() {
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        if (audioCtx.state === "suspended") {
+          audioCtx.resume();
+        }
+
+        return audioCtx;
+      }
+
+      const TTS = {
+        speak(text) {
+          if (!audioEnabled || !("speechSynthesis" in window)) return;
+
+          window.speechSynthesis.cancel();
+
+          const utterance = new SpeechSynthesisUtterance(text);
+          utterance.lang = "id-ID";
+
+          window.speechSynthesis.speak(utterance);
+        }
+      };
+
+      const ImageCache = {
+        cache: new Map(),
+
+        get(url) {
+          if (!url) return null;
+
+          if (this.cache.has(url)) {
+            const img = this.cache.get(url);
+
+            return (img.complete && img.naturalWidth > 0)
+              ? img
+              : null;
+          }
+
+          const img = new Image();
+          img.crossOrigin = "anonymous";
+          img.src = url;
+
+          this.cache.set(url, img);
+
+          return null;
+        }
+      };
 
       class Tile {
-        constructor(col, row, index) { this.col = col; this.row = row; this.index = index; this.isOwned = false; this.uniqueId = ''; this.ownerName = ''; this.ownerAvatar = ''; this.ownerColor = '#1e293b'; this.isLocked = false; this.lockEndTime = 0; }
-        claim(uid, name, av, col) { this.isOwned = true; this.uniqueId = uid; this.ownerName = name; this.ownerAvatar = av; this.ownerColor = col; }
-        lock(durSec) { this.isLocked = true; this.lockEndTime = Date.now() + durSec * 1000; }
-        checkLockExpiration(now) { if (this.isLocked && now >= this.lockEndTime) { this.isLocked = false; this.lockEndTime = 0; return true; } return false; }
+        constructor(col, row, index) {
+          this.col = col;
+          this.row = row;
+          this.index = index;
+
+          this.isOwned = false;
+          this.uniqueId = "";
+          this.ownerName = "";
+          this.ownerAvatar = "";
+          this.ownerColor = "#1e293b";
+
+          this.isLocked = false;
+          this.lockEndTime = 0;
+        }
+
+        claim(uid, name, avatar, color) {
+          this.isOwned = true;
+          this.uniqueId = uid;
+          this.ownerName = name;
+          this.ownerAvatar = avatar;
+          this.ownerColor = color;
+        }
+
+        lock(durationSeconds) {
+          this.isLocked = true;
+          this.lockEndTime = Date.now() + durationSeconds * 1000;
+        }
+
+        checkLockExpiration(now) {
+          if (this.isLocked && now >= this.lockEndTime) {
+            this.isLocked = false;
+            this.lockEndTime = 0;
+            return true;
+          }
+
+          return false;
+        }
       }
 
       function computeMergedSquares(grid) {
-        const covered = Array.from({ length: ROWS }, () => Array(COLS).fill(false)); const merged = [];
-        for (let k = Math.min(COLS, ROWS); k >= 2; k--) {
-          for (let r = 0; r <= ROWS - k; r++) {
-            for (let c = 0; c <= COLS - k; c++) {
-              const base = grid[r * COLS + c]; if (!base.isOwned || covered[r][c]) continue;
-              let isValid = true;
-              for (let dr = 0; dr < k; dr++) { for (let dc = 0; dc < k; dc++) { const t = grid[(r + dr) * COLS + (c + dc)]; if (!t.isOwned || t.uniqueId !== base.uniqueId || !!t.isLocked !== !!base.isLocked || covered[r+dr][c+dc]) { isValid = false; break; } } if (!isValid) break; }
-              if (isValid) {
+        const covered = Array.from(
+          { length: ROWS },
+          () => Array(COLS).fill(false)
+        );
+
+        const merged = [];
+
+        for (let size = Math.min(COLS, ROWS); size >= 2; size--) {
+          for (let row = 0; row <= ROWS - size; row++) {
+            for (let col = 0; col <= COLS - size; col++) {
+              const base = grid[row * COLS + col];
+
+              if (!base.isOwned || covered[row][col]) continue;
+
+              let valid = true;
+
+              for (let dr = 0; dr < size; dr++) {
+                for (let dc = 0; dc < size; dc++) {
+                  const tile = grid[(row + dr) * COLS + (col + dc)];
+
+                  if (
+                    !tile.isOwned ||
+                    tile.uniqueId !== base.uniqueId ||
+                    !!tile.isLocked !== !!base.isLocked ||
+                    covered[row + dr][col + dc]
+                  ) {
+                    valid = false;
+                    break;
+                  }
+                }
+
+                if (!valid) break;
+              }
+
+              if (valid) {
                 let maxLock = 0;
-                for (let dr = 0; dr < k; dr++) { for (let dc = 0; dc < k; dc++) { covered[r+dr][c+dc] = true; const t = grid[(r+dr)*COLS + (c+dc)]; if (t.isLocked && t.lockEndTime > maxLock) maxLock = t.lockEndTime; } }
-                merged.push({ col: c, row: r, size: k, uniqueId: base.uniqueId, ownerName: base.ownerName, ownerAvatar: base.ownerAvatar, ownerColor: base.ownerColor, isLocked: !!base.isLocked, lockEndTime: maxLock });
+
+                for (let dr = 0; dr < size; dr++) {
+                  for (let dc = 0; dc < size; dc++) {
+                    covered[row + dr][col + dc] = true;
+
+                    const tile = grid[
+                      (row + dr) * COLS + (col + dc)
+                    ];
+
+                    if (tile.isLocked && tile.lockEndTime > maxLock) {
+                      maxLock = tile.lockEndTime;
+                    }
+                  }
+                }
+
+                merged.push({
+                  col,
+                  row,
+                  size,
+                  uniqueId: base.uniqueId,
+                  ownerName: base.ownerName,
+                  ownerAvatar: base.ownerAvatar,
+                  ownerColor: base.ownerColor,
+                  isLocked: !!base.isLocked,
+                  lockEndTime: maxLock
+                });
               }
             }
           }
         }
-        for (let r = 0; r < ROWS; r++) { for (let c = 0; c < COLS; c++) { if (!covered[r][c]) { const t = grid[r*COLS + c]; if (t.isOwned) merged.push({ col: c, row: r, size: 1, uniqueId: t.uniqueId, ownerName: t.ownerName, ownerAvatar: t.ownerAvatar, ownerColor: t.ownerColor, isLocked: t.isLocked, lockEndTime: t.lockEndTime }); } } }
+
+        for (let row = 0; row < ROWS; row++) {
+          for (let col = 0; col < COLS; col++) {
+            if (!covered[row][col]) {
+              const tile = grid[row * COLS + col];
+
+              if (tile.isOwned) {
+                merged.push({
+                  col,
+                  row,
+                  size: 1,
+                  uniqueId: tile.uniqueId,
+                  ownerName: tile.ownerName,
+                  ownerAvatar: tile.ownerAvatar,
+                  ownerColor: tile.ownerColor,
+                  isLocked: tile.isLocked,
+                  lockEndTime: tile.lockEndTime
+                });
+              }
+            }
+          }
+        }
+
         return merged;
       }
 
       class TurfWarGame {
         constructor() {
-          this.canvas = document.getElementById('warCanvas'); this.ctx = this.canvas.getContext('2d'); this.wrapper = document.getElementById('canvas-wrapper');
-          this.grid = []; for (let r = 0; r < ROWS; r++) { for (let c = 0; c < COLS; c++) this.grid.push(new Tile(c, r, r * COLS + c)); }
-          this.dpr = window.devicePixelRatio || 1; this.cachedMergedSquares = computeMergedSquares(this.grid); this.tapCounters = {};
-          this.initResize(); this.initWebSocket(); this.startLoop();
-          setInterval(() => { const now = Date.now(); let changed = false; this.grid.forEach(t => { if (t.checkLockExpiration(now)) changed = true; }); if (changed) this.onGridModified(); }, 300);
-          document.getElementById('btn-sound-toggle').addEventListener('click', (e) => { audioEnabled = !audioEnabled; e.target.textContent = audioEnabled ? '馃攰' : '馃攪'; });
-          document.getElementById('btn-fs-toggle').addEventListener('click', () => { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{}); else document.exitFullscreen(); });
-        }
-        initResize() { const resize = () => { const rect = this.wrapper.getBoundingClientRect(); this.canvas.width = rect.width * this.dpr; this.canvas.height = rect.height * this.dpr; this.tileWidth = (rect.width * this.dpr) / COLS; this.tileHeight = (rect.height * this.dpr) / ROWS; }; window.addEventListener('resize', resize); resize(); }
-        setTicker(text) { document.getElementById('ticker-msg').innerHTML = text; }
+          this.canvas = document.getElementById("warCanvas");
+          this.ctx = this.canvas.getContext("2d");
+          this.wrapper = document.getElementById("canvas-wrapper");
 
-        triggerTap(uid, name, av, col, amt) {
-          uid = String(uid || 'penonton'); name = String(name || 'Penonton'); av = av || '';
-          this.tapCounters[uid] = (this.tapCounters[uid] || 0) + Math.max(1, Number(amt) || 1); let claims = 0;
-          while (this.tapCounters[uid] >= 50) { this.tapCounters[uid] -= 50; const empty = this.grid.filter(t => !t.isOwned && !t.isLocked); const target = empty.length > 0 ? empty[Math.floor(Math.random()*empty.length)] : this.grid.filter(t => !t.isLocked && t.uniqueId !== uid)[0]; if (target) { target.claim(uid, name, av, col); claims++; } }
-          if (claims > 0) { this.setTicker(`馃憜 <b>${name}</b> tap mencapai kelipatan 50!`); this.onGridModified(); }
+          this.grid = [];
+
+          for (let row = 0; row < ROWS; row++) {
+            for (let col = 0; col < COLS; col++) {
+              this.grid.push(
+                new Tile(col, row, row * COLS + col)
+              );
+            }
+          }
+
+          this.dpr = window.devicePixelRatio || 1;
+          this.cachedMergedSquares = computeMergedSquares(this.grid);
+          this.tapCounters = {};
+
+          this.initResize();
+          this.initWebSocket();
+          this.startLoop();
+
+          setInterval(() => {
+            const now = Date.now();
+            let changed = false;
+
+            this.grid.forEach(tile => {
+              if (tile.checkLockExpiration(now)) {
+                changed = true;
+              }
+            });
+
+            if (changed) this.onGridModified();
+          }, 300);
+
+          document
+            .getElementById("btn-sound-toggle")
+            .addEventListener("click", event => {
+              audioEnabled = !audioEnabled;
+              event.target.textContent = audioEnabled ? "SUARA" : "MUTE";
+            });
+
+          document
+            .getElementById("btn-fs-toggle")
+            .addEventListener("click", () => {
+              if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(() => {});
+              } else {
+                document.exitFullscreen();
+              }
+            });
         }
-        triggerGift(uid, name, av, col, gift) {
-          uid = String(uid || 'penonton'); name = String(name || 'Penonton'); av = av || ''; gift = String(gift || '').toLowerCase();
-          const t = this.grid.filter(t => !t.isLocked && t.uniqueId !== uid);
-          if(gift.includes('rose') || gift.includes('mawar')) { if(t.length>0) t[Math.floor(Math.random()*t.length)].claim(uid, name, av, col); this.setTicker(`馃尮 ${name} mengirim Mawar!`); }
-          else if(gift.includes('love') || gift.includes('cinta')) { this.grid.filter(t=>t.uniqueId===uid).slice(0,5).forEach(x=>x.lock(30)); this.setTicker(`馃洝锔� ${name} kebal 30 detik!`); }
-          else if(gift.includes('money')) { for(let i=0;i<64&&i<t.length;i++) t[i].claim(uid, name, av, col); this.setTicker(`馃捀 ${name} meluncurkan SENJATA UANG (64 Petak)!`); document.getElementById('vip-alert').classList.add('active'); setTimeout(()=>document.getElementById('vip-alert').classList.remove('active'), 3000); }
-          else { if(t.length>0) t[Math.floor(Math.random()*t.length)].claim(uid, name, av, col); this.setTicker(`馃巵 ${name} mengirim ${gift || 'gift'}!`); }
+
+        initResize() {
+          const resize = () => {
+            const rect = this.wrapper.getBoundingClientRect();
+
+            this.canvas.width = rect.width * this.dpr;
+            this.canvas.height = rect.height * this.dpr;
+
+            this.tileWidth = (rect.width * this.dpr) / COLS;
+            this.tileHeight = (rect.height * this.dpr) / ROWS;
+          };
+
+          window.addEventListener("resize", resize);
+          resize();
+        }
+
+        setTicker(text) {
+          document.getElementById("ticker-msg").innerHTML = text;
+        }
+
+        triggerTap(uid, name, avatar, color, amount) {
+          uid = String(uid || "penonton");
+          name = String(name || "Penonton");
+          avatar = avatar || "";
+
+          this.tapCounters[uid] =
+            (this.tapCounters[uid] || 0) +
+            Math.max(1, Number(amount) || 1);
+
+          let claims = 0;
+
+          while (this.tapCounters[uid] >= 50) {
+            this.tapCounters[uid] -= 50;
+
+            const empty = this.grid.filter(
+              tile => !tile.isOwned && !tile.isLocked
+            );
+
+            const target = empty.length > 0
+              ? empty[Math.floor(Math.random() * empty.length)]
+              : this.grid.find(
+                  tile => !tile.isLocked && tile.uniqueId !== uid
+                );
+
+            if (target) {
+              target.claim(uid, name, avatar, color);
+              claims++;
+            }
+          }
+
+          if (claims > 0) {
+            this.setTicker(
+              `<b>${name}</b> mencapai kelipatan 50 like!`
+            );
+
+            this.onGridModified();
+          }
+        }
+
+        triggerGift(uid, name, avatar, color, gift) {
+          uid = String(uid || "penonton");
+          name = String(name || "Penonton");
+          avatar = avatar || "";
+          gift = String(gift || "").toLowerCase();
+
+          const available = this.grid.filter(
+            tile => !tile.isLocked && tile.uniqueId !== uid
+          );
+
+          if (gift.includes("rose") || gift.includes("mawar")) {
+            if (available.length > 0) {
+              const target = available[
+                Math.floor(Math.random() * available.length)
+              ];
+
+              target.claim(uid, name, avatar, color);
+            }
+
+            this.setTicker(`${name} mengirim Mawar!`);
+          } else if (
+            gift.includes("love") ||
+            gift.includes("cinta")
+          ) {
+            this.grid
+              .filter(tile => tile.uniqueId === uid)
+              .slice(0, 5)
+              .forEach(tile => tile.lock(30));
+
+            this.setTicker(`${name} mendapat perlindungan 30 detik!`);
+          } else if (gift.includes("money")) {
+            for (
+              let i = 0;
+              i < 64 && i < available.length;
+              i++
+            ) {
+              available[i].claim(uid, name, avatar, color);
+            }
+
+            this.setTicker(
+              `${name} meluncurkan SENJATA UANG (64 Petak)!`
+            );
+
+            document.getElementById("vip-alert").classList.add("active");
+
+            setTimeout(() => {
+              document.getElementById("vip-alert").classList.remove("active");
+            }, 3000);
+          } else {
+            if (available.length > 0) {
+              const target = available[
+                Math.floor(Math.random() * available.length)
+              ];
+
+              target.claim(uid, name, avatar, color);
+            }
+
+            this.setTicker(
+              `${name} mengirim ${gift || "gift"}!`
+            );
+          }
+
           this.onGridModified();
         }
 
         onGridModified() {
           this.cachedMergedSquares = computeMergedSquares(this.grid);
-          const counts = {}; let total = 0; this.grid.forEach(t => { if(t.isOwned) { total++; if(!counts[t.uniqueId]) counts[t.uniqueId]={name:t.ownerName, av:t.ownerAvatar, col:t.ownerColor, c:0}; counts[t.uniqueId].c++; }});
-          const sorted = Object.values(counts).sort((a,b)=>b.c-a.c).slice(0,4);
-          document.getElementById('lb-summary-stat').textContent = `${total}/${TOTAL_TILES} Petak`;
-          document.getElementById('lb-list-container').innerHTML = sorted.map((p,i) => `<div class="lb-row"><span style="width:15px">${i+1}.</span><img class="lb-avatar-img" src="${p.av}" onerror="this.style.visibility='hidden'"><span class="lb-name">${p.name}</span><span style="margin-left:auto;font-size:10px;font-weight:bold;color:${p.col}">${((p.c/TOTAL_TILES)*100).toFixed(1)}%</span></div>`).join('');
+
+          const counts = {};
+          let total = 0;
+
+          this.grid.forEach(tile => {
+            if (tile.isOwned) {
+              total++;
+
+              if (!counts[tile.uniqueId]) {
+                counts[tile.uniqueId] = {
+                  name: tile.ownerName,
+                  av: tile.ownerAvatar,
+                  col: tile.ownerColor,
+                  c: 0
+                };
+              }
+
+              counts[tile.uniqueId].c++;
+            }
+          });
+
+          const sorted = Object.values(counts)
+            .sort((a, b) => b.c - a.c)
+            .slice(0, 4);
+
+          document.getElementById("lb-summary-stat").textContent =
+            `${total}/${TOTAL_TILES} Petak`;
+
+          document.getElementById("lb-list-container").innerHTML =
+            sorted.map((player, index) => `
+              <div class="lb-row">
+                <span style="width:15px">${index + 1}.</span>
+                <img
+                  class="lb-avatar-img"
+                  src="${player.av}"
+                  onerror="this.style.visibility='hidden'"
+                >
+                <span class="lb-name">${player.name}</span>
+                <span style="
+                  margin-left:auto;
+                  font-size:10px;
+                  font-weight:bold;
+                  color:${player.col}
+                ">
+                  ${((player.c / TOTAL_TILES) * 100).toFixed(1)}%
+                </span>
+              </div>
+            `).join("");
         }
 
-        startLoop() { const loop = () => { this.render(); requestAnimationFrame(loop); }; requestAnimationFrame(loop); }
+        startLoop() {
+          const loop = () => {
+            this.render();
+            requestAnimationFrame(loop);
+          };
+
+          requestAnimationFrame(loop);
+        }
+
         render() {
-          const ctx = this.ctx; ctx.fillStyle = '#06080e'; ctx.fillRect(0,0,this.canvas.width,this.canvas.height);
-          this.grid.forEach(t => { if(!t.isOwned) { ctx.fillStyle='#090d16'; ctx.fillRect(t.col*this.tileWidth, t.row*this.tileHeight, this.tileWidth-1, this.tileHeight-1); }});
-          this.cachedMergedSquares.forEach(sq => {
-            const x=sq.col*this.tileWidth+1.5, y=sq.row*this.tileHeight+1.5, w=sq.size*this.tileWidth-3, h=sq.size*this.tileHeight-3;
-            ctx.fillStyle = sq.ownerColor; ctx.beginPath(); ctx.roundRect(x,y,w,h,3); ctx.fill(); ctx.strokeStyle='rgba(255,255,255,0.4)'; ctx.stroke();
-            const fs = Math.max(8, Math.min(26, Math.floor(this.tileHeight*(sq.size===1?0.2:0.4))));
-            ctx.font = `900 ${fs}px sans-serif`; ctx.textAlign='center'; ctx.textBaseline='middle';
-            let n = sq.ownerName.trim().split(' ')[0]; ctx.fillStyle='#fff'; ctx.fillText(n, x+w/2, y+h/2+10);
-            if(sq.isLocked) { ctx.fillStyle='#fde047'; ctx.fillRect(x+w-20, y+2, 18, 14); ctx.fillStyle='#000'; ctx.font='bold 9px sans-serif'; ctx.fillText('馃敀', x+w-11, y+9); }
+          const ctx = this.ctx;
+
+          ctx.fillStyle = "#06080e";
+          ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+          this.grid.forEach(tile => {
+            if (!tile.isOwned) {
+              ctx.fillStyle = "#090d16";
+
+              ctx.fillRect(
+                tile.col * this.tileWidth,
+                tile.row * this.tileHeight,
+                this.tileWidth - 1,
+                this.tileHeight - 1
+              );
+            }
+          });
+
+          this.cachedMergedSquares.forEach(square => {
+            const x = square.col * this.tileWidth + 1.5;
+            const y = square.row * this.tileHeight + 1.5;
+            const width = square.size * this.tileWidth - 3;
+            const height = square.size * this.tileHeight - 3;
+
+            ctx.fillStyle = square.ownerColor;
+            ctx.beginPath();
+            ctx.roundRect(x, y, width, height, 3);
+            ctx.fill();
+
+            ctx.strokeStyle = "rgba(255,255,255,0.4)";
+            ctx.stroke();
+
+            const fontSize = Math.max(
+              8,
+              Math.min(
+                26,
+                Math.floor(
+                  this.tileHeight * (square.size === 1 ? 0.2 : 0.4)
+                )
+              )
+            );
+
+            ctx.font = `900 ${fontSize}px sans-serif`;
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+
+            const firstName = square.ownerName.trim().split(" ")[0];
+
+            ctx.fillStyle = "#fff";
+            ctx.fillText(
+              firstName,
+              x + width / 2,
+              y + height / 2 + 10
+            );
+
+            if (square.isLocked) {
+              ctx.fillStyle = "#fde047";
+              ctx.fillRect(x + width - 20, y + 2, 18, 14);
+
+              ctx.fillStyle = "#000";
+              ctx.font = "bold 9px sans-serif";
+              ctx.fillText("LOCK", x + width - 11, y + 9);
+            }
           });
         }
 
         initWebSocket() {
           let socket;
           let reconnectTimer;
+
           const connect = () => {
-            this.setTicker('馃煛 Menghubungkan ke Worker...');
+            this.setTicker("Menghubungkan ke Worker...");
+
             socket = new WebSocket(WORKER_WS);
-            socket.onopen = () => this.setTicker('馃煝 Terhubung ke Bridge; menunggu event TikFinity...');
-            socket.onmessage = (event) => {
-              let msg;
-              try { msg = JSON.parse(event.data); } catch (e) { console.error('[Bridge] JSON tidak valid', e); return; }
-              if (!msg || msg.type !== 'tiktok_event' || !msg.data) return;
-              const d = msg.data;
-              const type = String(d.eventType || d.type || d.event || '').toLowerCase();
-              const uid = String(d.userId || d.uniqueId || d.uid || 'penonton');
-              const name = String(d.username || d.nickname || d.uniqueId || 'Penonton');
-              const avatar = d.profilePictureUrl || d.avatar || d.profilePicture || '';
-              const color = '#38bdf8';
-              if (type.includes('like') || type.includes('tap') || d.likeCount !== undefined || d.totalLikeCount !== undefined) {
-                const likes = Number(d.likeCount ?? d.count ?? d.amount ?? d.totalLikeCount ?? 1);
-                this.triggerTap(uid, name, avatar, color, Math.max(1, likes || 1));
-                this.setTicker(`馃憜 Event like dari <b>${name}</b> (${Math.max(1, likes || 1)})`);
-                return;
-              }
-              const giftName = String(d.giftName || d.gift || d.name || '');
-              if (type.includes('gift') || giftName) {
-                this.triggerGift(uid, name, avatar, '#f43f5e', giftName || 'gift');
-                return;
-              }
-              console.log('[Bridge] Event tidak dikenali:', d);
+
+            socket.onopen = () => {
+              this.setTicker(
+                "Terhubung ke Bridge; menunggu event TikFinity..."
+              );
             };
-            socket.onerror = (e) => { console.error('[Bridge] WebSocket error', e); };
+
+            socket.onmessage = event => {
+              let message;
+
+              try {
+                message = JSON.parse(event.data);
+              } catch (error) {
+                console.error("[Bridge] JSON tidak valid", error);
+                return;
+              }
+
+              if (
+                !message ||
+                message.type !== "tiktok_event" ||
+                !message.data
+              ) {
+                return;
+              }
+
+              const data = message.data;
+
+              const type = String(
+                data.eventType || data.type || data.event || ""
+              ).toLowerCase();
+
+              const uid = String(
+                data.userId ||
+                data.uniqueId ||
+                data.uid ||
+                "penonton"
+              );
+
+              const name = String(
+                data.username ||
+                data.nickname ||
+                data.uniqueId ||
+                "Penonton"
+              );
+
+              const avatar =
+                data.profilePictureUrl ||
+                data.avatar ||
+                data.profilePicture ||
+                "";
+
+              const color = "#38bdf8";
+
+              if (
+                type.includes("like") ||
+                type.includes("tap") ||
+                data.likeCount !== undefined ||
+                data.totalLikeCount !== undefined
+              ) {
+                const likes = Number(
+                  data.likeCount ??
+                  data.count ??
+                  data.amount ??
+                  data.totalLikeCount ??
+                  1
+                );
+
+                const amount = Math.max(1, likes || 1);
+
+                this.triggerTap(
+                  uid,
+                  name,
+                  avatar,
+                  color,
+                  amount
+                );
+
+                this.setTicker(
+                  `Event like dari <b>${name}</b> (${amount})`
+                );
+
+                return;
+              }
+
+              const giftName = String(
+                data.giftName ||
+                data.gift ||
+                data.name ||
+                ""
+              );
+
+              if (type.includes("gift") || giftName) {
+                this.triggerGift(
+                  uid,
+                  name,
+                  avatar,
+                  "#f43f5e",
+                  giftName || "gift"
+                );
+
+                return;
+              }
+
+              console.log("[Bridge] Event tidak dikenali:", data);
+            };
+
+            socket.onerror = error => {
+              console.error("[Bridge] WebSocket error", error);
+            };
+
             socket.onclose = () => {
-              this.setTicker('馃敶 Koneksi terputus; mencoba menyambung kembali...');
+              this.setTicker(
+                "Koneksi terputus; mencoba menyambung kembali..."
+              );
+
               clearTimeout(reconnectTimer);
+
               reconnectTimer = setTimeout(connect, 3000);
             };
           };
+
           connect();
         }
       }
 
-      document.getElementById('start-overlay').addEventListener('click', () => {
-        if (ttsUnlocked) return; ttsUnlocked = true; getAudioContext();
-        if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
-        document.getElementById('start-overlay').classList.add('hidden');
-        TTS.speak('Terhubung ke Perang Wilayah Bridge. Siap bertempur!');
+      document
+        .getElementById("start-overlay")
+        .addEventListener("click", () => {
+          if (ttsUnlocked) return;
+
+          ttsUnlocked = true;
+          getAudioContext();
+
+          if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(() => {});
+          }
+
+          document
+            .getElementById("start-overlay")
+            .classList.add("hidden");
+
+          TTS.speak(
+            "Terhubung ke Perang Wilayah Bridge. Siap bertempur!"
+          );
+        });
+
+      window.addEventListener("DOMContentLoaded", () => {
+        window.gameInstance = new TurfWarGame();
       });
-      window.addEventListener('DOMContentLoaded', () => { window.gameInstance = new TurfWarGame(); });
     })();
   </script>
 </body>
