@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Perang Wilayah Kanvas - TikTok Live @milalala48</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
     body { background-color: #05070d; color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; min-height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden; background-image: radial-gradient(circle at 50% 10%, rgba(99, 102, 241, 0.16), transparent 45%), radial-gradient(circle at 80% 85%, rgba(236, 72, 153, 0.14), transparent 45%), linear-gradient(180deg, #070913 0%, #030407 100%); }
@@ -35,34 +34,34 @@
   <div id="stream-container">
     <div id="start-overlay">
       <div class="start-title">PERANG WILAYAH KANVAS</div>
-      <button id="btn-start-game" class="btn-start-pulse">🔊 TAP UNTUK MEMULAI (AUTO FULLSCREEN)</button>
+      <button id="btn-start-game" class="btn-start-pulse">馃攰 TAP UNTUK MEMULAI (AUTO FULLSCREEN)</button>
     </div>
     <header id="live-header">
       <div class="badge-live">LIVE</div>
-      <div style="font-size:11.5px; font-weight:900; color:#f59e0b;">⚔️ PERANG WILAYAH</div>
+      <div style="font-size:11.5px; font-weight:900; color:#f59e0b;">鈿旓笍 PERANG WILAYAH</div>
       <div class="header-actions">
-        <button id="btn-sound-toggle" class="btn-icon">🔊</button>
-        <button id="btn-fs-toggle" class="btn-icon">🔲</button>
+        <button id="btn-sound-toggle" class="btn-icon">馃攰</button>
+        <button id="btn-fs-toggle" class="btn-icon">馃敳</button>
       </div>
     </header>
     <div id="leaderboard-overlay">
-      <div class="lb-header"><span>👑 TOP PENGUASA</span><span id="lb-summary-stat" style="color:#94a3b8">375 Petak Total</span></div>
+      <div class="lb-header"><span>馃憫 TOP PENGUASA</span><span id="lb-summary-stat" style="color:#94a3b8">375 Petak Total</span></div>
       <div id="lb-list-container"></div>
     </div>
     <div id="vip-alert"><div class="vip-headline" id="vip-title">SULTAN MENEMBAKKAN SENJATA!</div></div>
     <div id="canvas-wrapper"><canvas id="warCanvas"></canvas></div>
-    <div id="event-ticker"><span id="ticker-msg">🔄 Menginisialisasi injeksi internal...</span></div>
+    <div id="event-ticker"><span id="ticker-msg">馃攧 Menghubungkan ke Perang Wilayah Bridge...</span></div>
   </div>
 
   <script>
     (function () {
       const COLS = 15; const ROWS = 25; const TOTAL_TILES = COLS * ROWS;
+      const WORKER_WS = "wss://perang-wilayah-bridge.destiyantomi.workers.dev/ws";
       let audioEnabled = true; let audioCtx = null; let ttsUnlocked = false;
 
       function getAudioContext() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === 'suspended') audioCtx.resume(); return audioCtx; }
       const TTS = { speak(text) { if (!audioEnabled || !('speechSynthesis' in window)) return; window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.lang = 'id-ID'; window.speechSynthesis.speak(u); } };
-      const SoundFX = { playTap() { /* tap sound */ }, playRose() { /* rose sound */ }, playBomb() { /* bomb sound */ }, playMoneyGun() { /* money sound */ } };
-
+      const SoundFX = { playTap() {}, playRose() {}, playBomb() {}, playMoneyGun() {} };
       const ImageCache = { cache: new Map(), get(url) { if (!url) return null; if (this.cache.has(url)) { const img = this.cache.get(url); return (img.complete && img.naturalWidth > 0) ? img : null; } const img = new Image(); img.crossOrigin = 'anonymous'; img.src = url; this.cache.set(url, img); return null; } };
 
       class Tile {
@@ -99,32 +98,34 @@
           this.dpr = window.devicePixelRatio || 1; this.cachedMergedSquares = computeMergedSquares(this.grid); this.tapCounters = {};
           this.initResize(); this.initWebSocket(); this.startLoop();
           setInterval(() => { const now = Date.now(); let changed = false; this.grid.forEach(t => { if (t.checkLockExpiration(now)) changed = true; }); if (changed) this.onGridModified(); }, 300);
-          document.getElementById('btn-sound-toggle').addEventListener('click', (e) => { audioEnabled = !audioEnabled; e.target.textContent = audioEnabled ? '🔊' : '🔇'; });
+          document.getElementById('btn-sound-toggle').addEventListener('click', (e) => { audioEnabled = !audioEnabled; e.target.textContent = audioEnabled ? '馃攰' : '馃攪'; });
           document.getElementById('btn-fs-toggle').addEventListener('click', () => { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{}); else document.exitFullscreen(); });
         }
         initResize() { const resize = () => { const rect = this.wrapper.getBoundingClientRect(); this.canvas.width = rect.width * this.dpr; this.canvas.height = rect.height * this.dpr; this.tileWidth = (rect.width * this.dpr) / COLS; this.tileHeight = (rect.height * this.dpr) / ROWS; }; window.addEventListener('resize', resize); resize(); }
         setTicker(text) { document.getElementById('ticker-msg').innerHTML = text; }
-        
+
         triggerTap(uid, name, av, col, amt) {
-          this.tapCounters[uid] = (this.tapCounters[uid] || 0) + amt; let claims = 0;
+          uid = String(uid || 'penonton'); name = String(name || 'Penonton'); av = av || '';
+          this.tapCounters[uid] = (this.tapCounters[uid] || 0) + Math.max(1, Number(amt) || 1); let claims = 0;
           while (this.tapCounters[uid] >= 50) { this.tapCounters[uid] -= 50; const empty = this.grid.filter(t => !t.isOwned && !t.isLocked); const target = empty.length > 0 ? empty[Math.floor(Math.random()*empty.length)] : this.grid.filter(t => !t.isLocked && t.uniqueId !== uid)[0]; if (target) { target.claim(uid, name, av, col); claims++; } }
-          if (claims > 0) { this.setTicker(`👆 <b>${name}</b> tap mencapai kelipatan 50!`); this.onGridModified(); }
+          if (claims > 0) { this.setTicker(`馃憜 <b>${name}</b> tap mencapai kelipatan 50!`); this.onGridModified(); }
         }
         triggerGift(uid, name, av, col, gift) {
+          uid = String(uid || 'penonton'); name = String(name || 'Penonton'); av = av || ''; gift = String(gift || '').toLowerCase();
           const t = this.grid.filter(t => !t.isLocked && t.uniqueId !== uid);
-          if(gift.includes('rose') || gift.includes('mawar')) { if(t.length>0) t[Math.floor(Math.random()*t.length)].claim(uid, name, av, col); this.setTicker(`🌹 ${name} mengirim Mawar!`); }
-          else if(gift.includes('love') || gift.includes('cinta')) { this.grid.filter(t=>t.uniqueId===uid).slice(0,5).forEach(x=>x.lock(30)); this.setTicker(`🛡️ ${name} kebal 30 detik!`); }
-          else if(gift.includes('money')) { for(let i=0;i<64&&i<t.length;i++) t[i].claim(uid, name, av, col); this.setTicker(`💸 ${name} meluncurkan SENJATA UANG (64 Petak)!`); document.getElementById('vip-alert').classList.add('active'); setTimeout(()=>document.getElementById('vip-alert').classList.remove('active'), 3000); }
-          else { if(t.length>0) t[Math.floor(Math.random()*t.length)].claim(uid, name, av, col); }
+          if(gift.includes('rose') || gift.includes('mawar')) { if(t.length>0) t[Math.floor(Math.random()*t.length)].claim(uid, name, av, col); this.setTicker(`馃尮 ${name} mengirim Mawar!`); }
+          else if(gift.includes('love') || gift.includes('cinta')) { this.grid.filter(t=>t.uniqueId===uid).slice(0,5).forEach(x=>x.lock(30)); this.setTicker(`馃洝锔� ${name} kebal 30 detik!`); }
+          else if(gift.includes('money')) { for(let i=0;i<64&&i<t.length;i++) t[i].claim(uid, name, av, col); this.setTicker(`馃捀 ${name} meluncurkan SENJATA UANG (64 Petak)!`); document.getElementById('vip-alert').classList.add('active'); setTimeout(()=>document.getElementById('vip-alert').classList.remove('active'), 3000); }
+          else { if(t.length>0) t[Math.floor(Math.random()*t.length)].claim(uid, name, av, col); this.setTicker(`馃巵 ${name} mengirim ${gift || 'gift'}!`); }
           this.onGridModified();
         }
-        
+
         onGridModified() {
           this.cachedMergedSquares = computeMergedSquares(this.grid);
           const counts = {}; let total = 0; this.grid.forEach(t => { if(t.isOwned) { total++; if(!counts[t.uniqueId]) counts[t.uniqueId]={name:t.ownerName, av:t.ownerAvatar, col:t.ownerColor, c:0}; counts[t.uniqueId].c++; }});
           const sorted = Object.values(counts).sort((a,b)=>b.c-a.c).slice(0,4);
           document.getElementById('lb-summary-stat').textContent = `${total}/${TOTAL_TILES} Petak`;
-          document.getElementById('lb-list-container').innerHTML = sorted.map((p,i) => `<div class="lb-row"><span style="width:15px">${i+1}.</span><img class="lb-avatar-img" src="${p.av}"><span class="lb-name">${p.name}</span><span style="margin-left:auto;font-size:10px;font-weight:bold;color:${p.col}">${((p.c/TOTAL_TILES)*100).toFixed(1)}%</span></div>`).join('');
+          document.getElementById('lb-list-container').innerHTML = sorted.map((p,i) => `<div class="lb-row"><span style="width:15px">${i+1}.</span><img class="lb-avatar-img" src="${p.av}" onerror="this.style.visibility='hidden'"><span class="lb-name">${p.name}</span><span style="margin-left:auto;font-size:10px;font-weight:bold;color:${p.col}">${((p.c/TOTAL_TILES)*100).toFixed(1)}%</span></div>`).join('');
         }
 
         startLoop() { const loop = () => { this.render(); requestAnimationFrame(loop); }; requestAnimationFrame(loop); }
@@ -137,21 +138,48 @@
             const fs = Math.max(8, Math.min(26, Math.floor(this.tileHeight*(sq.size===1?0.2:0.4))));
             ctx.font = `900 ${fs}px sans-serif`; ctx.textAlign='center'; ctx.textBaseline='middle';
             let n = sq.ownerName.trim().split(' ')[0]; ctx.fillStyle='#fff'; ctx.fillText(n, x+w/2, y+h/2+10);
-            if(sq.isLocked) { ctx.fillStyle='#fde047'; ctx.fillRect(x+w-20, y+2, 18, 14); ctx.fillStyle='#000'; ctx.font='bold 9px sans-serif'; ctx.fillText('🔒', x+w-11, y+9); }
+            if(sq.isLocked) { ctx.fillStyle='#fde047'; ctx.fillRect(x+w-20, y+2, 18, 14); ctx.fillStyle='#000'; ctx.font='bold 9px sans-serif'; ctx.fillText('馃敀', x+w-11, y+9); }
           });
         }
 
         initWebSocket() {
-          const targetId = 'milalala48';
-          try {
-            // Karena kita menyuntikkan script ini di dalam rumah Zerody,
-            // io() akan otomatis menembus tanpa CORS blok!
-            const socket = io(); 
-            socket.on('connect', () => { socket.emit('setUniqueId', targetId, { enableExtendedGiftInfo: true }); });
-            socket.on('setUniqueIdSuccess', () => { this.setTicker(`🟢 INJEKSI BERHASIL! Menunggu penonton @${targetId}...`); });
-            socket.on('like', (d) => this.triggerTap(d.uniqueId, d.nickname, d.profilePictureUrl, '#38bdf8', d.likeCount||1));
-            socket.on('gift', (d) => { if(d.giftType===1 && !d.repeatEnd) return; this.triggerGift(d.uniqueId, d.nickname, d.profilePictureUrl, '#f43f5e', (d.giftName||'').toLowerCase()); });
-          } catch (err) { this.setTicker('🔴 Gagal injeksi. Refresh halaman.'); }
+          let socket;
+          let reconnectTimer;
+          const connect = () => {
+            this.setTicker('馃煛 Menghubungkan ke Worker...');
+            socket = new WebSocket(WORKER_WS);
+            socket.onopen = () => this.setTicker('馃煝 Terhubung ke Bridge; menunggu event TikFinity...');
+            socket.onmessage = (event) => {
+              let msg;
+              try { msg = JSON.parse(event.data); } catch (e) { console.error('[Bridge] JSON tidak valid', e); return; }
+              if (!msg || msg.type !== 'tiktok_event' || !msg.data) return;
+              const d = msg.data;
+              const type = String(d.eventType || d.type || d.event || '').toLowerCase();
+              const uid = String(d.userId || d.uniqueId || d.uid || 'penonton');
+              const name = String(d.username || d.nickname || d.uniqueId || 'Penonton');
+              const avatar = d.profilePictureUrl || d.avatar || d.profilePicture || '';
+              const color = '#38bdf8';
+              if (type.includes('like') || type.includes('tap') || d.likeCount !== undefined || d.totalLikeCount !== undefined) {
+                const likes = Number(d.likeCount ?? d.count ?? d.amount ?? d.totalLikeCount ?? 1);
+                this.triggerTap(uid, name, avatar, color, Math.max(1, likes || 1));
+                this.setTicker(`馃憜 Event like dari <b>${name}</b> (${Math.max(1, likes || 1)})`);
+                return;
+              }
+              const giftName = String(d.giftName || d.gift || d.name || '');
+              if (type.includes('gift') || giftName) {
+                this.triggerGift(uid, name, avatar, '#f43f5e', giftName || 'gift');
+                return;
+              }
+              console.log('[Bridge] Event tidak dikenali:', d);
+            };
+            socket.onerror = (e) => { console.error('[Bridge] WebSocket error', e); };
+            socket.onclose = () => {
+              this.setTicker('馃敶 Koneksi terputus; mencoba menyambung kembali...');
+              clearTimeout(reconnectTimer);
+              reconnectTimer = setTimeout(connect, 3000);
+            };
+          };
+          connect();
         }
       }
 
@@ -159,7 +187,7 @@
         if (ttsUnlocked) return; ttsUnlocked = true; getAudioContext();
         if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
         document.getElementById('start-overlay').classList.add('hidden');
-        TTS.speak('Injeksi berhasil. Siap bertempur!');
+        TTS.speak('Terhubung ke Perang Wilayah Bridge. Siap bertempur!');
       });
       window.addEventListener('DOMContentLoaded', () => { window.gameInstance = new TurfWarGame(); });
     })();
